@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "module" : "commonjs",
+    "target": "ES2019",
+    "lib": ["ES2020"],
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "isolatedModules": true,
+    // Not compatibale with webpack
+    // "module": "commonjs",
+
+    "preserveWatchOutput": true,
+    "strict": true,
+    "strictPropertyInitialization": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "composite": true,
+
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+
+  },
+  "exclude": [".devcontainer", ".vscode", "dist", "node_modules", "bundle"],
+  "include": ["./src" , "./src/**/swagger.json"]
+}

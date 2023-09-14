@@ -1,0 +1,51 @@
+version: "3.3"
+
+services:
+
+  dev:
+    user: "${CURRENT_UID:-node}"
+    image: "node:16.13.0"
+    working_dir: /app
+    ports:
+      - 9090:9090
+    depends_on:
+      - localstack.local
+    volumes:
+      - ..:/app:cached
+      - ~/.npmrc:/home/node/.npmrc:delegated
+    environment:
+      NODE_ENV: 'development'
+      IS_RUNNING_IN_CONTAINER: 'true'
+      NODE_TLS_REJECT_UNAUTHORIZED: '0'
+      PARAMETER_STORE_PATH: '/dissuing/scp/dev/card'
+      NODE_OPTIONS: '--enable-source-maps'
+      npm_config_cache: /tmp/.npm
+      npm_config_userconfig: /home/node/.npmrc
+
+      # Required for localstack
+      AWS_REGION: ap-southeast-2
+      AWS_ACCESS_KEY_ID: some_aws_access_key_id
+      AWS_SECRET_ACCESS_KEY: some_aws_secret_access_key
+    command: [ "sleep", infinity ]
+
+  localstack.local:
+    # image: localstack/localstack:2.0.1
+    image: localstack/localstack-pro:2.0.2
+    ports:
+      - 9093:4566
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    environment:
+      # see: https://docs.localstack.cloud/references/configuration/
+      DEBUG: 1
+      PERSISTENCE: 0
+      ACTIVATE_PRO: 1
+      HOSTNAME_EXTERNAL: localstack.local
+      LOCALSTACK_HOSTNAME: localstack.local
+      DEFAULT_REGION: ap-southeast-2
+      LAMBDA_EXECUTOR: docker-reuse
+      LAMBDA_KEEPALIVE_MS: 600000
+      LAMBDA_REMOVE_CONTAINERS: 1
+      DOCKER_HOST: unix:///var/run/docker.sock
+      LOCALSTACK_API_KEY:
+

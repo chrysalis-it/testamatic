@@ -139,7 +139,7 @@ export const makeIntegrationTestContextFactory = <ENVKEYS extends string, MOCKSE
 export async function startLocalApiHttp(config: ApiConfig): Promise<http.Server> {
   const server = await config.makeApi()
 
-  return new Promise((resolve, reject) => {
+  return new Promise<http.Server>((resolve, reject) => {
     try {
       server.listen({ port: config.port, exclusive: false }, () => {
         console.log(`Server running at http://localhost:${config.port}`)

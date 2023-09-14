@@ -71,9 +71,6 @@ typings/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variables file
-.env*.local
-.env.test
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -134,16 +131,6 @@ bundle
 *.zip
 
 # IDE
-# Idea user specific stuff:
-.idea/workspace.xml
-.idea/compiler.xml
-.idea/misc.xml
-.idea/tasks.xml
-.idea/dictionaries
-.idea/vcs.xml
-.idea/jsLibraryMappings.xml
-.idea/shelf/
+.idea
+.vscode
 
-
-# Temp build files
-*.test.txt

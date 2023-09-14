@@ -16,18 +16,12 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "docker": "docker-compose -f .devcontainer/docker-compose.yml",
-    "docker:images": "npm run docker -- images -q infra.local",
     "docker:up": "npm run docker -- up -d",
     "docker:down": "npm run docker -- down -v",
     "docker:logs": "npm run docker -- logs -f",
-    "docker:bounce": "npm-run-all docker:down docker:up docker:dev:connect",
-    "docker:deploy": "npm-run-all docker:up docker:dev:package docker:infra:apply docker:logs",
-    "docker:dev:connect": "npm run docker:up && npm run docker -- exec  dev.local bash",
-    "docker:dev:package": "npm run docker -- exec -T  dev.local npm ci && npm run build && npm run package",
-    "docker:infra:connect": "npm run docker -- exec infra.local bash",
-    "docker:infra:validate": "npm run docker -- exec -T  infra.local bash ./scripts/terraform.local.validate.sh",
-    "docker:infra:apply": "npm run docker:up && npm run docker -- exec -T  infra.local bash ./scripts/terraform.local.apply.sh",
-    "docker:localstack:wait": "npm run docker -- exec -T dev.local bash -c \"source ./.devcontainer/wait-for-it.sh && docker_wait_for_service http://localstack.local:4566 40\""
+    "docker:bounce": "npm run docker:down npm run docker:up docker:dev:connect",
+    "docker:dev:connect": "npm run docker:up && npm run docker -- exec  dev bash",
+    "docker:localstack:wait": "npm run docker -- exec -T dev bash -c \"source ./.devcontainer/wait-for-it.sh && docker_wait_for_service http://localstack.local:4566 40\""
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.0.0",

@@ -1,8 +1,8 @@
 import http from "http"
-import { RestClient } from "typed-rest-client"
-import { logger } from "../logger/Logger"
-import { MockHttpExpectation } from "./mockHttpServer/MockHttpExpectation"
-import { MockHttpServer } from "./mockHttpServer/MockHttpServer"
+import {RestClient} from "typed-rest-client"
+import {logger} from "../logger/Logger"
+import {MockHttpExpectation} from "./mockHttpServer/MockHttpExpectation"
+import {MockHttpServer} from "./mockHttpServer/MockHttpServer"
 
 export type IsExecuted<RES> = () => Promise<RES>
 
@@ -21,7 +21,7 @@ export interface IntegrationTestContext<ENVKEYS extends string, MOCKSERVERNAMES 
   api: { client?: RestClient }
 }
 
-export type ApiMaker = () => Promise<http.Server>
+export type ApiMaker = <ENVKEYS extends string>(env: EnvVars<ENVKEYS>) => Promise<http.Server>
 
 export type ApiConfig = {
   port: number
@@ -36,12 +36,11 @@ export type EnvVars<ENVKEYS extends string> = { [key in ENVKEYS]: string }
 
 export const makeIntegrationTestContextFactory = <ENVKEYS extends string, MOCKSERVERNAMES extends string, WHENDELTA>(
   defaultEnv: EnvVars<ENVKEYS>,
-  mockHttpServers: MockHttpServer<MOCKSERVERNAMES, any>[],
+  mockHttpServers: MockHttpServer<MOCKSERVERNAMES, ENVKEYS>[],
   whenDeltaConfig: WhenDeltaConfig<WHENDELTA>,
   apiConfig?: ApiConfig
 ): (() => IntegrationTestContext<ENVKEYS, MOCKSERVERNAMES, WHENDELTA>) => {
   const httpMockEnvEntries = Object.assign({}, ...mockHttpServers.map((x) => x.getEnvEntries()))
-
   const env: EnvVars<ENVKEYS> = {
     ...defaultEnv,
     ...httpMockEnvEntries,
@@ -51,10 +50,10 @@ export const makeIntegrationTestContextFactory = <ENVKEYS extends string, MOCKSE
 
   const apiClient = apiConfig
     ? new RestClient("Integration test Api", `http://localhost:${apiConfig.port}`, undefined, {
-        socketTimeout: 10000,
-        maxRetries: 3,
-        allowRetries: true,
-      })
+      socketTimeout: 10000,
+      maxRetries: 3,
+      allowRetries: true,
+    })
     : undefined
 
   const closeServer = (server: http.Server | undefined): Promise<void> => {
@@ -96,10 +95,26 @@ export const makeIntegrationTestContextFactory = <ENVKEYS extends string, MOCKSE
     }
   }
 
+  const startLocalApiHttp = async (config: ApiConfig, env: EnvVars<ENVKEYS>): Promise<http.Server> => {
+    const server = await config.makeApi(env)
+
+    return new Promise<http.Server>((resolve, reject) => {
+      try {
+        server.listen({port: config.port, exclusive: false}, () => {
+          console.log(`Server running at http://localhost:${config.port}`)
+          resolve(server)
+        })
+      } catch (e) {
+        console.error(`Failed to start server`)
+        reject(e)
+      }
+    })
+  }
+
   const before = {
     all: async () => {
       logger.debug("ctx.beforeAll started")
-      apiServerPromise = apiConfig ? startLocalApiHttp(apiConfig) : undefined
+      apiServerPromise = apiConfig ? startLocalApiHttp(apiConfig, env) : undefined
       await Promise.all([apiServerPromise, ...mockHttpServers.map((x) => x.listen())])
       logger.debug("ctx.beforeAll complete")
     },
@@ -130,24 +145,9 @@ export const makeIntegrationTestContextFactory = <ENVKEYS extends string, MOCKSE
     env,
     before: before,
     after: after,
-    httpMock: { expect },
-    api: { client: apiClient },
+    httpMock: {expect},
+    api: {client: apiClient},
     when,
   })
 }
 
-export async function startLocalApiHttp(config: ApiConfig): Promise<http.Server> {
-  const server = await config.makeApi()
-
-  return new Promise<http.Server>((resolve, reject) => {
-    try {
-      server.listen({ port: config.port, exclusive: false }, () => {
-        console.log(`Server running at http://localhost:${config.port}`)
-        resolve(server)
-      })
-    } catch (e) {
-      console.error(`Failed to start server`)
-      reject(e)
-    }
-  })
-}

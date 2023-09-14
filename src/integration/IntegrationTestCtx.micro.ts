@@ -173,7 +173,7 @@ describe("IntegrationTestCtx.micro", () => {
       httpMockkServerMocks.forEach((x) => x.setup((x) => x.listen()).returns(() => Promise.resolve()))
 
       apiMock.setup((x) => x.listen({ port, exclusive: false }, match.any()))
-      apiMakerMock.setup((x) => x()).returns(() => Promise.resolve(apiMock.object))
+      apiMakerMock.setup((x) => x(match.any())).returns(() => Promise.resolve(apiMock.object))
 
       const testCtxFactory = makeIntegrationTestContextFactory<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
         someEnv,

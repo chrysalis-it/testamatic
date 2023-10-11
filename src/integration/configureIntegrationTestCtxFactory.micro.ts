@@ -2,8 +2,9 @@ import http from "http"
 import { assertThat, match } from "mismatched"
 import { Thespian, TMocked } from "thespian"
 import { someFixture } from "../fixture/someFixture"
-import { ApiMaker, EnvVars, makeIntegrationTestContextFactory, WhenDeltaConfig } from "./IntegrationTestCtx"
 import { MockHttpServer } from "./mockHttpServer/MockHttpServer"
+import {EnvVars} from "./IntegrationTestCtx";
+import {ApiMaker, configureIntegrationTestContext, WhenDeltaConfig} from "./configureIntegrationTestCtxFactory";
 
 type SomeEnvKeys = "Key1" | "Key2" | "Key3" | "Key4"
 type SomeEnvVars = { [key in SomeEnvKeys]: string }
@@ -56,7 +57,7 @@ describe("IntegrationTestCtx.micro", () => {
     it("is created correctly", () => {
       httpMockkServerMocks.forEach((x, index) => x.setup((x) => x.getEnvEntries()).returns(() => envEntries[index]))
 
-      const testCtxFactory = makeIntegrationTestContextFactory<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+      const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
         someEnv,
         httpMockkServers,
         someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>()
@@ -83,7 +84,7 @@ describe("IntegrationTestCtx.micro", () => {
       httpMockkServerMocks.forEach((x, index) => x.setup((x) => x.getEnvEntries()).returns(() => envEntries[index]))
       httpMockkServerMocks.forEach((x) => x.setup((x) => x.listen()).returns(() => Promise.resolve()))
 
-      const testCtxFactory = makeIntegrationTestContextFactory<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+      const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
         someEnv,
         httpMockkServers,
         someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>()
@@ -97,7 +98,7 @@ describe("IntegrationTestCtx.micro", () => {
     it("beforeEach", async () => {
       httpMockkServerMocks.forEach((x, index) => x.setup((x) => x.getEnvEntries()).returns(() => envEntries[index]))
 
-      const testCtxFactory = makeIntegrationTestContextFactory<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+      const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
         someEnv,
         httpMockkServers,
         someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>()
@@ -112,7 +113,7 @@ describe("IntegrationTestCtx.micro", () => {
       httpMockkServerMocks.forEach((x, index) => x.setup((x) => x.getEnvEntries()).returns(() => envEntries[index]))
       httpMockkServerMocks.forEach((x) => x.setup((x) => x.close()).returns(() => Promise.resolve()))
 
-      const testCtxFactory = makeIntegrationTestContextFactory<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+      const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
         someEnv,
         httpMockkServers,
         someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>()
@@ -127,7 +128,7 @@ describe("IntegrationTestCtx.micro", () => {
       httpMockkServerMocks.forEach((x, index) => x.setup((x) => x.getEnvEntries()).returns(() => envEntries[index]))
       httpMockkServerMocks.forEach((x) => x.setup((x) => x.verify()).returns(() => Promise.resolve()))
 
-      const testCtxFactory = makeIntegrationTestContextFactory<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+      const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
         someEnv,
         httpMockkServers,
         someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>()
@@ -144,7 +145,7 @@ describe("IntegrationTestCtx.micro", () => {
     it("is created correctly", () => {
       httpMockkServerMocks.forEach((x, index) => x.setup((x) => x.getEnvEntries()).returns(() => envEntries[index]))
 
-      const testCtxFactory = makeIntegrationTestContextFactory<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+      const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
         someEnv,
         httpMockkServers,
         someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
@@ -175,7 +176,7 @@ describe("IntegrationTestCtx.micro", () => {
       apiMock.setup((x) => x.listen({ port, exclusive: false }, match.any()))
       apiMakerMock.setup((x) => x(match.any())).returns(() => Promise.resolve(apiMock.object))
 
-      const testCtxFactory = makeIntegrationTestContextFactory<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+      const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
         someEnv,
         httpMockkServers,
         someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
@@ -190,7 +191,7 @@ describe("IntegrationTestCtx.micro", () => {
     it("beforeEach", async () => {
       httpMockkServerMocks.forEach((x, index) => x.setup((x) => x.getEnvEntries()).returns(() => envEntries[index]))
 
-      const testCtxFactory = makeIntegrationTestContextFactory<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+      const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
         someEnv,
         httpMockkServers,
         someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
@@ -206,7 +207,7 @@ describe("IntegrationTestCtx.micro", () => {
       httpMockkServerMocks.forEach((x, index) => x.setup((x) => x.getEnvEntries()).returns(() => envEntries[index]))
       httpMockkServerMocks.forEach((x) => x.setup((x) => x.close()).returns(() => Promise.resolve()))
 
-      const testCtxFactory = makeIntegrationTestContextFactory<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+      const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
         someEnv,
         httpMockkServers,
         someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
@@ -222,7 +223,7 @@ describe("IntegrationTestCtx.micro", () => {
       httpMockkServerMocks.forEach((x, index) => x.setup((x) => x.getEnvEntries()).returns(() => envEntries[index]))
       httpMockkServerMocks.forEach((x) => x.setup((x) => x.verify()).returns(() => Promise.resolve()))
 
-      const testCtxFactory = makeIntegrationTestContextFactory<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+      const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
         someEnv,
         httpMockkServers,
         someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
@@ -249,7 +250,7 @@ describe("IntegrationTestCtx.micro", () => {
 
         httpMockkServerMocks.forEach((x, index) => x.setup((x) => x.getEnvEntries()).returns(() => envEntries[index]))
 
-        const testCtxFactory = makeIntegrationTestContextFactory<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+        const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
           someEnv,
           httpMockkServers,
           whenDeltaConfigMock.object,

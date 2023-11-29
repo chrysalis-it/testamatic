@@ -1,5 +1,6 @@
 import { EnvVars } from "../IntegrationTestCtx"
 import { MatchInfo, MockHttpExpectation } from "./MockHttpExpectation"
+import { logger } from "../../logger/Logger"
 
 export type MockTcpListener = { onUrl: string; close: () => Promise<void> }
 export type MockTcpListenerFactory = (tcpConfig: TCPConfig, mockConfig: MockConfig) => Promise<MockTcpListener>
@@ -55,9 +56,12 @@ export class MockHttpServer<MOCKSERVERNAMES extends string, ENVKEYS extends stri
     return { [this.urlEnvKey]: this.tcpListener.onUrl } as Partial<EnvVars<ENVKEYS>>
   }
 
-  close = async (): Promise<void> => {
+  close = (): Promise<void> => {
     if (!this.tcpListener) throw new Error("Unable to close because listener has not been started")
-    await this.tcpListener.close()
+    return this.tcpListener
+      .close()
+      .then(() => logger.info(`Closed HttpMockServer ${this.name} `))
+      .catch((e) => logger.error(`Error closing HttpMockServer ${this.name}`, e))
   }
 
   expect<REQ, RES>(expectation: MockHttpExpectation<REQ, RES>): this {

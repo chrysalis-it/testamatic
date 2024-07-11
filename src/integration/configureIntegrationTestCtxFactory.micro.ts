@@ -89,8 +89,8 @@ describe("IntegrationTestCtx.micro", () => {
       // then`
       assertThat(ctx).is({
         api: { client: match.any() },
-        before: match.any(),
-        after: match.any(),
+        all: match.any(),
+        each: match.any(),
         when: match.any(),
         httpMock: match.any(),
         env: {
@@ -132,8 +132,8 @@ describe("IntegrationTestCtx.micro", () => {
       // then`
       assertThat(ctx).is({
         api: { client: match.any() },
-        before: match.any(),
-        after: match.any(),
+        all: match.any(),
+        each: match.any(),
         when: match.any(),
         httpMock: match.any(),
         env: {
@@ -164,8 +164,8 @@ describe("IntegrationTestCtx.micro", () => {
       // then`
       assertThat(ctx).is({
         api: { client: match.any() },
-        before: match.any(),
-        after: match.any(),
+        all: match.any(),
+        each: match.any(),
         when: match.any(),
         httpMock: match.any(),
         env: defaultEnv,
@@ -191,8 +191,8 @@ describe("IntegrationTestCtx.micro", () => {
       // then`
       assertThat(ctx).is({
         api: { client: match.any() },
-        before: match.any(),
-        after: match.any(),
+        all: match.any(),
+        each: match.any(),
         when: match.any(),
         httpMock: match.any(),
         env: {
@@ -224,7 +224,7 @@ describe("IntegrationTestCtx.micro", () => {
 
       // when
       const ctx = await testCtxFactory()
-      await ctx.before.each()
+      await ctx.each.before()
     })
     it("when no givens or mockservers", async () => {
       const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
@@ -234,7 +234,7 @@ describe("IntegrationTestCtx.micro", () => {
 
       // when
       const ctx = await testCtxFactory()
-      await ctx.before.each()
+      await ctx.each.before()
     })
   })
 
@@ -257,7 +257,7 @@ describe("IntegrationTestCtx.micro", () => {
 
       // when
       const ctx = await testCtxFactory()
-      await ctx.after.each()
+      await ctx.each.after()
     })
     it("when no givens and no mock servers", async () => {
       const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
@@ -267,7 +267,7 @@ describe("IntegrationTestCtx.micro", () => {
 
       // when
       const ctx = await testCtxFactory()
-      await ctx.after.each()
+      await ctx.each.after()
     })
   })
 
@@ -290,7 +290,7 @@ describe("IntegrationTestCtx.micro", () => {
 
       // when
       const ctx = await testCtxFactory()
-      await ctx.before.all()
+      await ctx.all.before()
     })
     it("when no givens and no mockservers", async () => {
 
@@ -300,7 +300,7 @@ describe("IntegrationTestCtx.micro", () => {
       )
       // when
       const ctx = await testCtxFactory()
-      await ctx.before.all()
+      await ctx.all.before()
     })
   })
 
@@ -324,7 +324,7 @@ describe("IntegrationTestCtx.micro", () => {
 
       // when
       const ctx = await testCtxFactory()
-      await ctx.after.all()
+      await ctx.all.after()
     })
     it("when no api config or givens or mockservers", async () => {
 
@@ -335,7 +335,7 @@ describe("IntegrationTestCtx.micro", () => {
 
       // when
       const ctx = await testCtxFactory()
-      await ctx.after.all()
+      await ctx.all.after()
     })
   })
 

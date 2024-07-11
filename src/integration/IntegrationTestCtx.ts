@@ -5,7 +5,7 @@ import {MockHttpServer} from "./mockHttpServer/MockHttpServer";
 export type EnvVars<ENVKEYS extends string> = { [key in ENVKEYS]: string }
 
 export type IsExecuted<RES> = () => Promise<RES>
-export type EachAndAll = { all: () => Promise<void>; each: () => Promise<void> }
+export type BeforeAndAfter = { before: () => Promise<void>; after: () => Promise<void> }
 export type API = { client: () => RestClient }
 export type MockServerExpecter<MOCKSERVERNAMES extends string, ENVKEYS extends string> = {
   expect: (
@@ -17,8 +17,8 @@ export type WHENRESPONSE<RES, WHENDELTA extends object> = { response: RES; delta
 export type WHEN<WHENDELTA extends object> = <RES>(isExecuted: IsExecuted<RES>) => Promise<WHENRESPONSE<RES, WHENDELTA>>
 
 export type IntegrationTestCtx<ENVKEYS extends string, MOCKSERVERNAMES extends string, WHENDELTA extends object> = {
-  before: EachAndAll
-  after: EachAndAll
+  each: BeforeAndAfter
+  all: BeforeAndAfter
   api: API
   env: EnvVars<ENVKEYS>
   httpMock: MockServerExpecter<MOCKSERVERNAMES, ENVKEYS>

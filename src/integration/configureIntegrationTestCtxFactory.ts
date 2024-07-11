@@ -4,7 +4,7 @@ import { MockHttpExpectation } from "./mockHttpServer/MockHttpExpectation"
 import { MockHttpServer } from "./mockHttpServer/MockHttpServer"
 import {
   API,
-  EachAndAll,
+  BeforeAndAfter,
   EnvVars,
   IntegrationTestCtx,
   IsExecuted,
@@ -41,11 +41,13 @@ export const configureIntegrationTestCtxProvider = <
 ): IntegrationTestCtxProvider<ENVKEYS, MOCKSERVERNAMES, WHENDELTA> => {
   return async () => {
     const env = envMaker(defaultEnv, mockHttpServers)
-    const clientAndServerPromise = clientAndServerProvider ? clientAndServerProvider(env) : undefined
 
-    const before = beforeMaker(mockHttpServers, beforeAll, beforeEach)
+    // TODO I am setting promise when
+    let clientAndServerPromise = clientAndServerProvider ? clientAndServerProvider(env) : undefined
 
-    const after = afterMaker(mockHttpServers, beforeAll, beforeEach, clientAndServerPromise)
+    const each = eachMaker(mockHttpServers,  beforeEach)
+
+    const all = allMaker(mockHttpServers, beforeAll, clientAndServerPromise)
 
     const httpMock = mockServerExpectionSetter(mockHttpServers)
 
@@ -55,8 +57,8 @@ export const configureIntegrationTestCtxProvider = <
 
     return {
       env: env,
-      before: before,
-      after: after,
+      all: all,
+      each: each,
       httpMock: httpMock,
       api: api,
       when: when,
@@ -82,27 +84,18 @@ const mockServerExpectionSetter = <MOCKSERVERNAMES extends string, ENVKEYS exten
   },
 })
 
-const beforeMaker = (mockHttpServers: MockHttpServer[], beforeAll: Given[], beforeEach: Given[]): EachAndAll => ({
-  all: async () => {
+const allMaker = (
+  mockHttpServers: MockHttpServer[],
+  beforeAll: Given[],
+  clientAndServerPromise?: Promise<ClientAndServer>,
+): BeforeAndAfter => ({
+  before: async () => {
     logger.debug("ctx.beforeAll started")
     await Promise.all([...mockHttpServers.map((x) => x.listen())])
     await Promise.all(beforeAll.map((x) => x.setup()))
     logger.debug("ctx.beforeAll complete")
   },
-  each: async () => {
-    logger.debug("ctx.beforeAll started")
-    await Promise.all(beforeEach.map((x) => x.setup()))
-    logger.debug("ctx.beforeAll complete")
-  },
-})
-
-const afterMaker = (
-  mockHttpServers: MockHttpServer[],
-  beforeAll: Given[],
-  beforeEach: Given[],
-  clientAndServerPromise?: Promise<ClientAndServer>,
-): EachAndAll => ({
-  all: async () => {
+  after: async () => {
     logger.debug("ctx.afterAll started")
     if (clientAndServerPromise) {
       await clientAndServerPromise.then((clientAndServer) => clientAndServer.close())
@@ -111,7 +104,15 @@ const afterMaker = (
     await Promise.all(beforeAll.map((x) => x.tearDown()))
     logger.debug("ctx.afterAll complete")
   },
-  each: async () => {
+})
+
+const eachMaker = (mockHttpServers: MockHttpServer[], beforeEach: Given[]): BeforeAndAfter => ({
+  before: async () => {
+    logger.debug("ctx.beforeAll started")
+    await Promise.all(beforeEach.map((x) => x.setup()))
+    logger.debug("ctx.beforeAll complete")
+  },
+  after: async () => {
     logger.debug("ctx.afterEach started")
     mockHttpServers.forEach((x) => x.verify())
     await Promise.all(beforeEach.map((x) => x.tearDown()))

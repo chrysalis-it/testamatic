@@ -205,137 +205,140 @@ describe("IntegrationTestCtx.micro", () => {
     })
   })
 
-  describe("beforeEach", () => {
-    it("when givens and mockservers", async () => {
-      httpMockkServerMocks.forEach((x, index) =>
-        x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
-      )
+  describe("each", () => {
+    describe("before", () => {
+      it("when givens and mockservers", async () => {
+        httpMockkServerMocks.forEach((x, index) =>
+          x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
+        )
 
-      givenMocks.forEach((mock, index) => mock.setup((x) => x.setup()))
+        givenMocks.forEach((mock, index) => mock.setup((x) => x.setup()))
 
-      const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-        defaultEnv,
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
-        httpMockkServerMocks.map((x) => x.object),
-        clientAndServerProviderStub,
-        [],
-        givenMocks.map((x) => x.object),
-      )
+        const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+          defaultEnv,
+          someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+          httpMockkServerMocks.map((x) => x.object),
+          clientAndServerProviderStub,
+          [],
+          givenMocks.map((x) => x.object),
+        )
 
-      // when
-      const ctx = await testCtxFactory()
-      await ctx.each.before()
+        // when
+        const ctx = await testCtxFactory()
+        await ctx.each.before()
+      })
+      it("when no givens or mockservers", async () => {
+        const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+          defaultEnv,
+          someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+        )
+
+        // when
+        const ctx = await testCtxFactory()
+        await ctx.each.before()
+      })
     })
-    it("when no givens or mockservers", async () => {
-      const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-        defaultEnv,
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
-      )
+    describe("after", () => {
+      it("when givens and mockservers", async () => {
+        httpMockkServerMocks.forEach((x, index) =>
+          x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
+        )
+        httpMockkServerMocks.forEach((x) => x.setup((x) => x.verify()).returns(() => Promise.resolve()))
+        givenMocks.forEach((mock, index) => mock.setup((x) => x.tearDown()))
 
-      // when
-      const ctx = await testCtxFactory()
-      await ctx.each.before()
-    })
+        const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+          defaultEnv,
+          someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+          httpMockkServerMocks.map((x) => x.object),
+          clientAndServerProviderStub,
+          [],
+          givenMocks.map((x) => x.object),
+        )
+
+        // when
+        const ctx = await testCtxFactory()
+        await ctx.each.after()
+      })
+      it("when no givens and no mock servers", async () => {
+        const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+          defaultEnv,
+          someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+        )
+
+        // when
+        const ctx = await testCtxFactory()
+        await ctx.each.after()
+      })
+
+  })
   })
 
-  describe("afterEach", () => {
-    it("when givens and mockservers", async () => {
-      httpMockkServerMocks.forEach((x, index) =>
-        x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
-      )
-      httpMockkServerMocks.forEach((x) => x.setup((x) => x.verify()).returns(() => Promise.resolve()))
-      givenMocks.forEach((mock, index) => mock.setup((x) => x.tearDown()))
+  describe("all", () => {
+    describe("before", () => {
+      it("when givens and mockservers", async () => {
+        httpMockkServerMocks.forEach((x, index) =>
+          x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
+        )
+        httpMockkServerMocks.forEach((x) => x.setup((x) => x.listen()).returns(() => Promise.resolve()))
+        givenMocks.forEach((mock, index) => mock.setup((x) => x.setup()))
 
-      const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-        defaultEnv,
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
-        httpMockkServerMocks.map((x) => x.object),
-        clientAndServerProviderStub,
-        [],
-        givenMocks.map((x) => x.object),
-      )
+        const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+          defaultEnv,
+          someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+          httpMockkServerMocks.map((x) => x.object),
+          clientAndServerProviderStub,
+          givenMocks.map((x) => x.object),
+          [],
+        )
 
-      // when
-      const ctx = await testCtxFactory()
-      await ctx.each.after()
+        // when
+        const ctx = await testCtxFactory()
+        await ctx.all.before()
+      })
+      it("when no givens and no mockservers", async () => {
+
+        const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+          defaultEnv,
+          someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+        )
+        // when
+        const ctx = await testCtxFactory()
+        await ctx.all.before()
+      })
     })
-    it("when no givens and no mock servers", async () => {
-      const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-        defaultEnv,
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
-      )
+    describe("after", () => {
+      it("when api config and givens and mockservers", async () => {
+        httpMockkServerMocks.forEach((x, index) =>
+          x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
+        )
+        clientAndServerMock.setup((clientandServer) => clientandServer.close()).returns(() => Promise.resolve())
+        httpMockkServerMocks.forEach((x) => x.setup((x) => x.close()).returns(() => Promise.resolve()))
+        givenMocks.forEach((mock, index) => mock.setup((x) => x.tearDown()))
 
-      // when
-      const ctx = await testCtxFactory()
-      await ctx.each.after()
-    })
-  })
+        const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+          defaultEnv,
+          someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+          httpMockkServerMocks.map((x) => x.object),
+          clientAndServerProviderStub,
+          givenMocks.map((x) => x.object),
+          givenMocks.map((x) => x.object),
+        )
 
-  describe("beforeAll", () => {
-    it("when givens and mockservers", async () => {
-      httpMockkServerMocks.forEach((x, index) =>
-        x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
-      )
-      httpMockkServerMocks.forEach((x) => x.setup((x) => x.listen()).returns(() => Promise.resolve()))
-      givenMocks.forEach((mock, index) => mock.setup((x) => x.setup()))
+        // when
+        const ctx = await testCtxFactory()
+        await ctx.all.after()
+      })
+      it("when no api config or givens or mockservers", async () => {
 
-      const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-        defaultEnv,
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
-        httpMockkServerMocks.map((x) => x.object),
-        clientAndServerProviderStub,
-        givenMocks.map((x) => x.object),
-        [],
-      )
+        const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+          defaultEnv,
+          someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+        )
 
-      // when
-      const ctx = await testCtxFactory()
-      await ctx.all.before()
-    })
-    it("when no givens and no mockservers", async () => {
-
-      const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-        defaultEnv,
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
-      )
-      // when
-      const ctx = await testCtxFactory()
-      await ctx.all.before()
-    })
-  })
-
-  describe("afterAll", () => {
-    it("when api config and givens and mockservers", async () => {
-      httpMockkServerMocks.forEach((x, index) =>
-        x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
-      )
-      clientAndServerMock.setup((clientandServer) => clientandServer.close()).returns(() => Promise.resolve())
-      httpMockkServerMocks.forEach((x) => x.setup((x) => x.close()).returns(() => Promise.resolve()))
-      givenMocks.forEach((mock, index) => mock.setup((x) => x.tearDown()))
-
-      const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-        defaultEnv,
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
-        httpMockkServerMocks.map((x) => x.object),
-        clientAndServerProviderStub,
-        givenMocks.map((x) => x.object),
-        givenMocks.map((x) => x.object),
-      )
-
-      // when
-      const ctx = await testCtxFactory()
-      await ctx.all.after()
-    })
-    it("when no api config or givens or mockservers", async () => {
-
-      const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-        defaultEnv,
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
-      )
-
-      // when
-      const ctx = await testCtxFactory()
-      await ctx.all.after()
+        // when
+        const ctx = await testCtxFactory()
+        await ctx.all.after()
+      })
     })
   })
 

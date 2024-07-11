@@ -3,23 +3,32 @@ import { assertThat, match } from "mismatched"
 import { Thespian, TMocked } from "thespian"
 import { someFixture } from "../fixture/someFixture"
 import { MockHttpServer } from "./mockHttpServer/MockHttpServer"
-import {EnvVars} from "./IntegrationTestCtx";
-import {ApiMaker, configureIntegrationTestContext, WhenDeltaConfig} from "./configureIntegrationTestCtxFactory";
+import { EnvVars } from "./IntegrationTestCtx"
+import {
+  ApiMaker,
+  IntegrationTestCtxProvider,
+  makeIntegrationTestCtxProvider,
+  WhenDeltaConfig,
+} from "./configureIntegrationTestCtxFactory"
+import { ClientAndServer, ClientAndServerProvider } from "./defaultClientAndServerProvider"
+import { RestClient } from "typed-rest-client"
+import { Given } from "./given/Given"
 
-type SomeEnvKeys = "Key1" | "Key2" | "Key3" | "Key4"
+type SomeEnvKeys = "EnvKey1" | "EnvKey2" | "EnvKey3" | "EnvKey4"
 type SomeEnvVars = { [key in SomeEnvKeys]: string }
-const envEntries: Partial<SomeEnvVars>[] = [
-  { Key1: "HttpMockEnvKey1Value" },
-  { Key2: "HttpMockEnvKey2Value" },
-  { Key3: "HttpMockEnvKey3Value" },
-]
 
-const someEnv: EnvVars<SomeEnvKeys> = {
-  Key1: "OriginalEnvKey1Value",
-  Key2: "OriginalEnvKey2Value",
-  Key3: "OriginalEnvKey3Value",
-  Key4: "OriginalEnvKey4Value",
+const defaultEnv: EnvVars<SomeEnvKeys> = {
+  EnvKey1: "OriginalEnvKey1Value",
+  EnvKey2: "OriginalEnvKey2Value",
+  EnvKey3: "OriginalEnvKey3Value",
+  EnvKey4: "OriginalEnvKey4Value",
 }
+
+const httpMockServerVarEntries: Partial<SomeEnvVars>[] = [
+  { EnvKey1: "HttpMockEnvKey1Value" },
+  { EnvKey2: "HttpMockEnvKey2Value" },
+  { EnvKey3: "HttpMockEnvKey3Value" },
+]
 
 type SomeMockServerNames = "HttpMockServer1" | "HttpMockServer2" | "HttpMockServer3"
 
@@ -30,11 +39,15 @@ class SomeWhenDelta {
 describe("IntegrationTestCtx.micro", () => {
   let mocks: Thespian
   let httpMockkServerMocks: TMocked<MockHttpServer<any, any>>[]
-  let httpMockkServers: MockHttpServer<any, any>[]
   let apiMakerMock: TMocked<ApiMaker>
   let apiMock: TMocked<http.Server>
+  let clientAndServerMock: TMocked<ClientAndServer>
+  let testCtxFactory: IntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>
+  let clientAndServerProviderStub: ClientAndServerProvider<SomeEnvKeys>
 
-  beforeEach(() => {
+  let givenMocks: TMocked<Given>[]
+
+  beforeEach(async () => {
     mocks = new Thespian()
 
     httpMockkServerMocks = [
@@ -42,233 +55,405 @@ describe("IntegrationTestCtx.micro", () => {
       mocks.mock("HttpMockkServer2"),
       mocks.mock("HttpMockkServer3"),
     ]
-
-    httpMockkServers = httpMockkServerMocks.map((x) => x.object)
-
     apiMakerMock = mocks.mock("apiMakerMock")
     apiMock = mocks.mock("apiMock")
+    clientAndServerMock = mocks.mock("clientAndServerMock")
+
+    givenMocks = [mocks.mock("beforeMock1"), mocks.mock("beforeMock2"), mocks.mock("beforeMock3")]
+
+    clientAndServerProviderStub = (env: EnvVars<SomeEnvKeys>) => Promise.resolve(clientAndServerMock.object)
   })
 
   afterEach(() => {
     mocks.verify()
   })
 
-  describe("with no APi Config", () => {
-    it("is created correctly", () => {
-      httpMockkServerMocks.forEach((x, index) => x.setup((x) => x.getEnvEntries()).returns(() => envEntries[index]))
+  describe("api.client", () => {
+    it("when no API config", async () => {
+      httpMockkServerMocks.forEach((x, index) =>
+        x
+          .setup((x) => x.getEnvEntries())
+          .returns(() => httpMockServerVarEntries[index])
+          .timesAtLeast(0),
+      )
 
-      const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-        someEnv,
-        httpMockkServers,
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>()
+      testCtxFactory = makeIntegrationTestCtxProvider(
+        defaultEnv,
+        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+        httpMockkServerMocks.map((x) => x.object),
       )
 
       // when
-      const ctx = testCtxFactory()
+      const ctx = await testCtxFactory()
 
       // then`
-      assertThat(ctx).is(
-        match.obj.has({
-          api: { client: undefined },
-          env: {
-            Key1: "HttpMockEnvKey1Value",
-            Key2: "HttpMockEnvKey2Value",
-            Key3: "HttpMockEnvKey3Value",
-            Key4: "OriginalEnvKey4Value",
-          },
-        })
-      )
+      assertThat(ctx).is({
+        api: { client: match.any() },
+        before: match.any(),
+        after: match.any(),
+        when: match.any(),
+        httpMock: match.any(),
+        env: {
+          EnvKey1: "HttpMockEnvKey1Value",
+          EnvKey2: "HttpMockEnvKey2Value",
+          EnvKey3: "HttpMockEnvKey3Value",
+          EnvKey4: "OriginalEnvKey4Value",
+        },
+      })
+
+      try {
+        await ctx.api.client()
+        fail("Should never get here")
+      } catch (e: any) {
+        assertThat(e.message).is("Please configure ClientAndServerProvider to use API.client")
+      }
     })
+    it("when API Config", async () => {
+      httpMockkServerMocks.forEach((x, index) =>
+        x
+          .setup((x) => x.getEnvEntries())
+          .returns(() => httpMockServerVarEntries[index])
+          .timesAtLeast(0),
+      )
 
-    it("beforeAll", async () => {
-      httpMockkServerMocks.forEach((x, index) => x.setup((x) => x.getEnvEntries()).returns(() => envEntries[index]))
-      httpMockkServerMocks.forEach((x) => x.setup((x) => x.listen()).returns(() => Promise.resolve()))
+      const expectedRestClient = someFixture.someObjectOfType<RestClient>()
+      clientAndServerMock.setup((x) => x.client).returns(() => expectedRestClient)
 
-      const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-        someEnv,
-        httpMockkServers,
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>()
+      testCtxFactory = makeIntegrationTestCtxProvider(
+        defaultEnv,
+        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+        httpMockkServerMocks.map((x) => x.object),
+        clientAndServerProviderStub,
       )
 
       // when
-      const ctx = testCtxFactory()
-      await ctx.before.all()
+      const ctx = await testCtxFactory()
+
+      // then`
+      assertThat(ctx).is({
+        api: { client: match.any() },
+        before: match.any(),
+        after: match.any(),
+        when: match.any(),
+        httpMock: match.any(),
+        env: {
+          EnvKey1: "HttpMockEnvKey1Value",
+          EnvKey2: "HttpMockEnvKey2Value",
+          EnvKey3: "HttpMockEnvKey3Value",
+          EnvKey4: "OriginalEnvKey4Value",
+        },
+      })
+
+      const restClient = await ctx.api.client()
+      assertThat(restClient).is(expectedRestClient)
     })
+  })
 
-    it("beforeEach", async () => {
-      httpMockkServerMocks.forEach((x, index) => x.setup((x) => x.getEnvEntries()).returns(() => envEntries[index]))
+  describe("env", () => {
+    it("when no mockServers", async () => {
 
-      const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-        someEnv,
-        httpMockkServers,
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>()
+
+      testCtxFactory = makeIntegrationTestCtxProvider(
+        defaultEnv,
+        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
       )
 
       // when
-      const ctx = testCtxFactory()
+      const ctx = await testCtxFactory()
+
+      // then`
+      assertThat(ctx).is({
+        api: { client: match.any() },
+        before: match.any(),
+        after: match.any(),
+        when: match.any(),
+        httpMock: match.any(),
+        env: defaultEnv,
+      })
+    })
+    it("when mockServers", async () => {
+      httpMockkServerMocks.forEach((x, index) =>
+        x
+          .setup((x) => x.getEnvEntries())
+          .returns(() => httpMockServerVarEntries[index])
+          .timesAtLeast(0),
+      )
+
+      testCtxFactory = makeIntegrationTestCtxProvider(
+        defaultEnv,
+        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+        httpMockkServerMocks.map((x) => x.object),
+      )
+
+      // when
+      const ctx = await testCtxFactory()
+
+      // then`
+      assertThat(ctx).is({
+        api: { client: match.any() },
+        before: match.any(),
+        after: match.any(),
+        when: match.any(),
+        httpMock: match.any(),
+        env: {
+          EnvKey1: "HttpMockEnvKey1Value",
+          EnvKey2: "HttpMockEnvKey2Value",
+          EnvKey3: "HttpMockEnvKey3Value",
+          EnvKey4: "OriginalEnvKey4Value",
+        },
+      })
+    })
+  })
+
+  describe("beforeEach", () => {
+    it("when givens", async () => {
+      httpMockkServerMocks.forEach((x, index) =>
+        x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
+      )
+
+      givenMocks.forEach((mock, index) => mock.setup((x) => x.setup()))
+
+      const testCtxFactory = await makeIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+        defaultEnv,
+        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+        httpMockkServerMocks.map((x) => x.object),
+        clientAndServerProviderStub,
+        [],
+        givenMocks.map((x) => x.object),
+      )
+
+      // when
+      const ctx = await testCtxFactory()
       await ctx.before.each()
     })
+    it("when no givens", async () => {
+      httpMockkServerMocks.forEach((x, index) =>
+        x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
+      )
 
-    it("afterAll", async () => {
-      httpMockkServerMocks.forEach((x, index) => x.setup((x) => x.getEnvEntries()).returns(() => envEntries[index]))
-      httpMockkServerMocks.forEach((x) => x.setup((x) => x.close()).returns(() => Promise.resolve()))
-
-      const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-        someEnv,
-        httpMockkServers,
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>()
+      const testCtxFactory = await makeIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+        defaultEnv,
+        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+        httpMockkServerMocks.map((x) => x.object),
+        clientAndServerProviderStub,
       )
 
       // when
-      const ctx = testCtxFactory()
-      await ctx.after.all()
+      const ctx = await testCtxFactory()
+      await ctx.before.each()
     })
+  })
 
-    it("afterEach", async () => {
-      httpMockkServerMocks.forEach((x, index) => x.setup((x) => x.getEnvEntries()).returns(() => envEntries[index]))
+  describe("afterEach", () => {
+    it("when givens", async () => {
+      httpMockkServerMocks.forEach((x, index) =>
+        x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
+      )
+      httpMockkServerMocks.forEach((x) => x.setup((x) => x.verify()).returns(() => Promise.resolve()))
+      givenMocks.forEach((mock, index) => mock.setup((x) => x.tearDown()))
+
+      const testCtxFactory = await makeIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+        defaultEnv,
+        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+        httpMockkServerMocks.map((x) => x.object),
+        clientAndServerProviderStub,
+        [],
+        givenMocks.map((x) => x.object),
+      )
+
+      // when
+      const ctx = await testCtxFactory()
+      await ctx.after.each()
+    })
+    it("when no givens", async () => {
+      httpMockkServerMocks.forEach((x, index) =>
+        x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
+      )
       httpMockkServerMocks.forEach((x) => x.setup((x) => x.verify()).returns(() => Promise.resolve()))
 
-      const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-        someEnv,
-        httpMockkServers,
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>()
+      const testCtxFactory = await makeIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+        defaultEnv,
+        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+        httpMockkServerMocks.map((x) => x.object),
+        clientAndServerProviderStub,
       )
 
       // when
-      const ctx = testCtxFactory()
+      const ctx = await testCtxFactory()
       await ctx.after.each()
     })
   })
-  describe("with APi Config", () => {
-    const port = someFixture.someUniqueNumber()
 
-    it("is created correctly", () => {
-      httpMockkServerMocks.forEach((x, index) => x.setup((x) => x.getEnvEntries()).returns(() => envEntries[index]))
-
-      const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-        someEnv,
-        httpMockkServers,
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
-        { port: someFixture.someUniqueNumber(), makeApi: apiMakerMock.object }
+  describe("beforeAll", () => {
+    it("when givens", async () => {
+      httpMockkServerMocks.forEach((x, index) =>
+        x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
       )
-
-      // when
-      const ctx = testCtxFactory()
-
-      // then`
-      assertThat(ctx).is(
-        match.obj.has({
-          api: { client: match.any() },
-          env: {
-            Key1: "HttpMockEnvKey1Value",
-            Key2: "HttpMockEnvKey2Value",
-            Key3: "HttpMockEnvKey3Value",
-            Key4: "OriginalEnvKey4Value",
-          },
-        })
-      )
-    })
-
-    it.skip("beforeAll", async () => {
-      httpMockkServerMocks.forEach((x, index) => x.setup((x) => x.getEnvEntries()).returns(() => envEntries[index]))
       httpMockkServerMocks.forEach((x) => x.setup((x) => x.listen()).returns(() => Promise.resolve()))
+      givenMocks.forEach((mock, index) => mock.setup((x) => x.setup()))
 
-      apiMock.setup((x) => x.listen({ port, exclusive: false }, match.any()))
-      apiMakerMock.setup((x) => x(match.any())).returns(() => Promise.resolve(apiMock.object))
-
-      const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-        someEnv,
-        httpMockkServers,
+      const testCtxFactory = await makeIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+        defaultEnv,
         someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
-        { port, makeApi: apiMakerMock.object }
+        httpMockkServerMocks.map((x) => x.object),
+        clientAndServerProviderStub,
+        givenMocks.map((x) => x.object),
+        [],
       )
 
       // when
-      const ctx = testCtxFactory()
+      const ctx = await testCtxFactory()
       await ctx.before.all()
     })
+    it("when no givens", async () => {
+      httpMockkServerMocks.forEach((x, index) =>
+        x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
+      )
+      httpMockkServerMocks.forEach((x) => x.setup((x) => x.listen()).returns(() => Promise.resolve()))
 
-    it("beforeEach", async () => {
-      httpMockkServerMocks.forEach((x, index) => x.setup((x) => x.getEnvEntries()).returns(() => envEntries[index]))
-
-      const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-        someEnv,
-        httpMockkServers,
+      const testCtxFactory = await makeIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+        defaultEnv,
         someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
-        { port, makeApi: apiMakerMock.object }
+        httpMockkServerMocks.map((x) => x.object),
+        clientAndServerProviderStub,
       )
 
       // when
-      const ctx = testCtxFactory()
-      await ctx.before.each()
+      const ctx = await testCtxFactory()
+      await ctx.before.all()
     })
+  })
 
-    it("afterAll", async () => {
-      httpMockkServerMocks.forEach((x, index) => x.setup((x) => x.getEnvEntries()).returns(() => envEntries[index]))
+  describe("afterAll", () => {
+    it("when api config and givens", async () => {
+      httpMockkServerMocks.forEach((x, index) =>
+        x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
+      )
+      clientAndServerMock.setup((clientandServer) => clientandServer.close()).returns(() => Promise.resolve())
       httpMockkServerMocks.forEach((x) => x.setup((x) => x.close()).returns(() => Promise.resolve()))
+      givenMocks.forEach((mock, index) => mock.setup((x) => x.tearDown()))
 
-      const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-        someEnv,
-        httpMockkServers,
+      const testCtxFactory = await makeIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+        defaultEnv,
         someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
-        { port, makeApi: apiMakerMock.object }
+        httpMockkServerMocks.map((x) => x.object),
+        clientAndServerProviderStub,
+        givenMocks.map((x) => x.object),
+        givenMocks.map((x) => x.object),
       )
 
       // when
-      const ctx = testCtxFactory()
+      const ctx = await testCtxFactory()
       await ctx.after.all()
     })
+    it("when no api config", async () => {
+      httpMockkServerMocks.forEach((x, index) =>
+        x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
+      )
+      httpMockkServerMocks.forEach((x) => x.setup((x) => x.close()).returns(() => Promise.resolve()))
+      givenMocks.forEach((mock, index) => mock.setup((x) => x.tearDown()))
 
-    it("afterEach", async () => {
-      httpMockkServerMocks.forEach((x, index) => x.setup((x) => x.getEnvEntries()).returns(() => envEntries[index]))
-      httpMockkServerMocks.forEach((x) => x.setup((x) => x.verify()).returns(() => Promise.resolve()))
-
-      const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-        someEnv,
-        httpMockkServers,
+      const testCtxFactory = await makeIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+        defaultEnv,
         someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
-        { port, makeApi: apiMakerMock.object }
+        httpMockkServerMocks.map((x) => x.object),
+        undefined,
+        givenMocks.map((x) => x.object),
+        givenMocks.map((x) => x.object),
       )
 
       // when
-      const ctx = testCtxFactory()
-      await ctx.after.each()
+      const ctx = await testCtxFactory()
+      await ctx.after.all()
     })
+    it("when no givens", async () => {
+      httpMockkServerMocks.forEach((x, index) =>
+        x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
+      )
+      httpMockkServerMocks.forEach((x) => x.setup((x) => x.close()).returns(() => Promise.resolve()))
+      clientAndServerMock.setup((clientandServer) => clientandServer.close()).returns(() => Promise.resolve())
 
-    describe("when", () => {
-      it("with no error", async () => {
-        const whenDeltaConfigMock: TMocked<WhenDeltaConfig<SomeWhenDelta>> = mocks.mock("whenDeltaConfigMock")
-        const firstSnapshot = someFixture.someObjectOfType<SomeWhenDelta>()
-        const secondSnapshot = someFixture.someObjectOfType<SomeWhenDelta>()
-        const expectedDelta = someFixture.someObjectOfType<SomeWhenDelta>()
+      const testCtxFactory = await makeIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+        defaultEnv,
+        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+        httpMockkServerMocks.map((x) => x.object),
+        clientAndServerProviderStub,
+      )
 
-        whenDeltaConfigMock.setup((x) => x.snapshot()).returns(() => Promise.resolve(firstSnapshot))
-        whenDeltaConfigMock.setup((x) => x.snapshot()).returns(() => Promise.resolve(secondSnapshot))
-        whenDeltaConfigMock
-          .setup((x) => x.diff(firstSnapshot, secondSnapshot))
-          .returns(() => Promise.resolve(expectedDelta))
+      // when
+      const ctx = await testCtxFactory()
+      await ctx.after.all()
+    })
+  })
 
-        httpMockkServerMocks.forEach((x, index) => x.setup((x) => x.getEnvEntries()).returns(() => envEntries[index]))
+  describe("when", () => {
+    it("with no error", async () => {
+      const whenDeltaConfigMock: TMocked<WhenDeltaConfig<SomeWhenDelta>> = mocks.mock("whenDeltaConfigMock")
+      const firstSnapshot = someFixture.someObjectOfType<SomeWhenDelta>()
+      const expectedDelta = someFixture.someObjectOfType<SomeWhenDelta>()
 
-        const testCtxFactory = configureIntegrationTestContext<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-          someEnv,
-          httpMockkServers,
-          whenDeltaConfigMock.object,
-          { port, makeApi: apiMakerMock.object }
-        )
+      whenDeltaConfigMock.setup((x) => x.snapshot()).returns(() => Promise.resolve(firstSnapshot))
+      whenDeltaConfigMock.setup((x) => x.diff(firstSnapshot)).returns(() => Promise.resolve(expectedDelta))
 
-        // when
-        const ctx = testCtxFactory()
+      httpMockkServerMocks.forEach((x, index) =>
+        x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
+      )
 
-        type executionResult = { someData: string }
-        const expectedResponse: executionResult = { someData: "Hey dude!" }
+      const testCtxFactory = await makeIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+        defaultEnv,
+        whenDeltaConfigMock.object,
+        httpMockkServerMocks.map((x) => x.object),
+        clientAndServerProviderStub,
+        givenMocks.map((x) => x.object),
+        [],
+      )
 
-        const result = await ctx.when<executionResult>(() => Promise.resolve(expectedResponse))
-        assertThat(result).is({
-          response: expectedResponse,
-          delta: expectedDelta,
-        })
+      // when
+      const ctx = await testCtxFactory()
+
+      type executionResult = { someData: string }
+      const expectedResponse: executionResult = { someData: "Hey dude!" }
+
+      const result = await ctx.when<executionResult>(() => Promise.resolve(expectedResponse))
+      assertThat(result).is({
+        response: expectedResponse,
+        delta: expectedDelta,
       })
+    })
+    it("with error", async () => {
+      const whenDeltaConfigMock: TMocked<WhenDeltaConfig<SomeWhenDelta>> = mocks.mock("whenDeltaConfigMock")
+      const firstSnapshot = someFixture.someObjectOfType<SomeWhenDelta>()
+
+      whenDeltaConfigMock.setup((x) => x.snapshot()).returns(() => Promise.resolve(firstSnapshot))
+
+      httpMockkServerMocks.forEach((x, index) =>
+        x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
+      )
+
+      const testCtxFactory = await makeIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+        defaultEnv,
+        whenDeltaConfigMock.object,
+        httpMockkServerMocks.map((x) => x.object),
+        clientAndServerProviderStub,
+        givenMocks.map((x) => x.object),
+        [],
+      )
+
+      // when
+      const ctx = await testCtxFactory()
+
+      type ExecutionResult = { someData: string }
+
+      const expectedError = new Error("OOOps")
+      const whenToExecute = () => {
+        throw expectedError
+      }
+      try {
+        const result = await ctx.when<ExecutionResult>(whenToExecute)
+        fail("Should never get here")
+      } catch (e: any) {
+        assertThat(e).is(expectedError)
+      }
     })
   })
 })

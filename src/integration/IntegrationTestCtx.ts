@@ -1,21 +1,26 @@
 import {MockHttpExpectation} from "./mockHttpServer/MockHttpExpectation";
 import {RestClient} from "typed-rest-client";
+import {MockHttpServer} from "./mockHttpServer/MockHttpServer";
 
 export type EnvVars<ENVKEYS extends string> = { [key in ENVKEYS]: string }
 
 export type IsExecuted<RES> = () => Promise<RES>
+export type EachAndAll = { all: () => Promise<void>; each: () => Promise<void> }
+export type API = { client: () => RestClient }
+export type MockServerExpecter<MOCKSERVERNAMES extends string, ENVKEYS extends string> = {
+  expect: (
+    name: MOCKSERVERNAMES,
+    expectation: MockHttpExpectation
+  ) => MockHttpServer<MOCKSERVERNAMES, ENVKEYS>
+}
+export type WHENRESPONSE<RES, WHENDELTA extends object> = { response: RES; delta: WHENDELTA }
+export type WHEN<WHENDELTA extends object> = <RES>(isExecuted: IsExecuted<RES>) => Promise<WHENRESPONSE<RES, WHENDELTA>>
 
-export interface IntegrationTestCtx<ENVKEYS extends string, MOCKSERVERNAMES extends string, WHENDELTA> {
+export type IntegrationTestCtx<ENVKEYS extends string, MOCKSERVERNAMES extends string, WHENDELTA extends object> = {
+  before: EachAndAll
+  after: EachAndAll
+  api: API
   env: EnvVars<ENVKEYS>
-  before: {
-    all: () => Promise<void>
-    each: () => Promise<void>
-  }
-  after: {
-    all: () => Promise<void>
-    each: () => Promise<void>
-  }
-  httpMock: { expect: (name: MOCKSERVERNAMES, expectation: MockHttpExpectation) => void }
-  when: <RES>(isExecuted: IsExecuted<RES>) => Promise<{ response: RES; delta: WHENDELTA }>
-  api: { client?: RestClient }
+  httpMock: MockServerExpecter<MOCKSERVERNAMES, ENVKEYS>
+  when: WHEN<WHENDELTA>
 }

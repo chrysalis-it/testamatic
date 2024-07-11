@@ -11,7 +11,7 @@ interface Failure {
   failure: any
 }
 
-export class MockHttpServer<MOCKSERVERNAMES extends string, ENVKEYS extends string> {
+export class MockHttpServer<MOCKSERVERNAMES extends string = any, ENVKEYS extends string = any> {
   private static nextServerPort = 9900
   private tcpCfg: TCPConfig
   private tcpListener: MockTcpListener

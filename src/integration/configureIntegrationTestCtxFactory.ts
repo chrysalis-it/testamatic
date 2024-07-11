@@ -27,7 +27,7 @@ export type IntegrationTestCtxProvider<
   WHENDELTA extends object,
 > = () => Promise<IntegrationTestCtx<ENVKEYS, MOCKSERVERNAMES, WHENDELTA>>
 
-export const makeIntegrationTestCtxProvider = <
+export const configureIntegrationTestCtxProvider = <
   ENVKEYS extends string,
   MOCKSERVERNAMES extends string,
   WHENDELTA extends object,

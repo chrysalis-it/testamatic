@@ -29,8 +29,7 @@ services:
     command: [ "sleep", infinity ]
 
   localstack.local:
-    # image: localstack/localstack:2.0.1
-    image: localstack/localstack-pro:2.0.2
+    image: localstack/localstack:2.0.1
     ports:
       - 9093:4566
     volumes:

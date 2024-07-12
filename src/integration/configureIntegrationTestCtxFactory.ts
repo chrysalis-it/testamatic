@@ -1,6 +1,5 @@
 import http from "http"
 import { logger } from "../logger/Logger"
-import { MockHttpExpectation } from "./mockHttpServer/MockHttpExpectation"
 import { MockHttpServer } from "./mockHttpServer/MockHttpServer"
 import {
   API,
@@ -13,6 +12,7 @@ import {
 } from "./IntegrationTestCtx"
 import { Given } from "./given/Given"
 import { ClientAndServer, ClientAndServerProvider } from "./defaultClientAndServerProvider"
+import {MockHttpServerExpectation} from "./mockHttpServer/MockHttpExpectation";
 
 export type ApiMaker = <ENVKEYS extends string>(env: EnvVars<ENVKEYS>) => Promise<http.Server>
 
@@ -77,7 +77,7 @@ const envMaker = <ENVKEYS extends string, MOCKSERVERNAMES extends string>(
 const mockServerExpectionSetter = <MOCKSERVERNAMES extends string, ENVKEYS extends string>(
   mockHttpServersx: MockHttpServer<MOCKSERVERNAMES, ENVKEYS>[],
 ): MockServerExpecter<MOCKSERVERNAMES, ENVKEYS> => ({
-  expect: (name: MOCKSERVERNAMES, expectation: MockHttpExpectation) => {
+  expect: (name: MOCKSERVERNAMES, expectation: MockHttpServerExpectation) => {
     const mockServer = mockHttpServersx.find((x) => x.name === name)
     if (!mockServer) throw new Error(`Cant find mock server ${name}`)
     return mockServer.expect(expectation)

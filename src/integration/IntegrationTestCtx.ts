@@ -1,4 +1,4 @@
-import {MockHttpExpectation} from "./mockHttpServer/MockHttpExpectation";
+import {MockHttpServerExpectation} from "./mockHttpServer/MockHttpExpectation";
 import {RestClient} from "typed-rest-client";
 import {MockHttpServer} from "./mockHttpServer/MockHttpServer";
 
@@ -10,7 +10,7 @@ export type API = { client: () => RestClient }
 export type MockServerExpecter<MOCKSERVERNAMES extends string, ENVKEYS extends string> = {
   expect: (
     name: MOCKSERVERNAMES,
-    expectation: MockHttpExpectation
+    expectation: MockHttpServerExpectation
   ) => MockHttpServer<MOCKSERVERNAMES, ENVKEYS>
 }
 export type WHENRESPONSE<RES, WHENDELTA extends object> = { response: RES; delta: WHENDELTA }

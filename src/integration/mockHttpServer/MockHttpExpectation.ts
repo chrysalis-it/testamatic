@@ -1,41 +1,33 @@
-import { DiffMatcher, match, validateThat } from "mismatched"
+import { match, matchMaker } from "mismatched"
 
-export interface MatchInfo {
+export interface RequestMatchInfo<REQ = unknown> {
   method: string
   url: string
-  headers: object
-  body: object
+  headers?: object
+  body?: REQ
 }
 
-export interface HttpRequestMatcher {
-  body?: DiffMatcher<object>
-  headers?: DiffMatcher<object>
-  method: "get" | "post" | "put" | "delete" | "head"
-  url: DiffMatcher<string>
-}
+export type HttpRequestMatcher<REQ = unknown> = RequestMatchInfo<REQ>
 
-export interface ExpectedHttpResponse<BODY> {
-  body: BODY
+export type ResponseBodyFactory<REQ, BODY> = (req: RequestMatchInfo<REQ>) => BODY
+
+export interface ExpectedHttpResponse<BODY = unknown, REQ = unknown> {
+  body?: BODY | ResponseBodyFactory<REQ, BODY>
   status: number
   statusText: string
 }
 
-export class MockHttpExpectation<REQ = object, RES = any> {
-  constructor(private requestMatcher: HttpRequestMatcher, public response: ExpectedHttpResponse<RES>) {}
-
-  matches(ctx: MatchInfo) {
-    return validateThat(ctx).satisfies(match.obj.has(this.requestMatcher))
-  }
+export interface MockHttpServerExpectation<REQ = unknown, RES = unknown> {
+  readonly response: ExpectedHttpResponse<RES, REQ>
+  readonly requestMatcher: HttpRequestMatcher<REQ>
 }
 
-export const createExpectedHttpResponse = <BODY>(
-  body: BODY,
-  status = 200,
-  statusText = "All good"
-): ExpectedHttpResponse<BODY> => {
-  return {
-    status: status,
-    statusText: statusText,
-    body: body,
-  }
-}
+export const mockHttpServerExpectationMatchesRequest = (
+  expectation: MockHttpServerExpectation,
+  request: RequestMatchInfo,
+) =>
+  matchMaker({
+    ...expectation.requestMatcher,
+    headers: expectation.requestMatcher.headers ?? match.any(),
+    body: expectation.requestMatcher.body ?? match.any(),
+  }).matches(request)

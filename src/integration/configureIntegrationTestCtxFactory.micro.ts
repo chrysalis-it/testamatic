@@ -6,13 +6,14 @@ import { MockHttpServer } from "./mockHttpServer/MockHttpServer"
 import { EnvVars } from "./IntegrationTestCtx"
 import {
   ApiMaker,
-  IntegrationTestCtxProvider,
   configureIntegrationTestCtxProvider,
+  EnvSetup,
+  Given,
+  IntegrationTestCtxProvider,
   WhenDeltaConfig,
 } from "./configureIntegrationTestCtxFactory"
 import { ClientAndServer, ClientAndServerProvider } from "./defaultClientAndServerProvider"
 import { RestClient } from "typed-rest-client"
-import { Given } from "./given/Given"
 
 type SomeEnvKeys = "EnvKey1" | "EnvKey2" | "EnvKey3" | "EnvKey4"
 type SomeEnvVars = { [key in SomeEnvKeys]: string }
@@ -42,6 +43,7 @@ describe("IntegrationTestCtx.micro", () => {
   let apiMakerMock: TMocked<ApiMaker>
   let apiMock: TMocked<http.Server>
   let clientAndServerMock: TMocked<ClientAndServer>
+  let envSetupMock: TMocked<EnvSetup<SomeEnvKeys>>
   let testCtxFactory: IntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>
   let clientAndServerProviderStub: ClientAndServerProvider<SomeEnvKeys>
 
@@ -58,6 +60,7 @@ describe("IntegrationTestCtx.micro", () => {
     apiMakerMock = mocks.mock("apiMakerMock")
     apiMock = mocks.mock("apiMock")
     clientAndServerMock = mocks.mock("clientAndServerMock")
+    envSetupMock = mocks.mock("envSetupMock")
 
     givenMocks = [mocks.mock("beforeMock1"), mocks.mock("beforeMock2"), mocks.mock("beforeMock3")]
 
@@ -70,6 +73,15 @@ describe("IntegrationTestCtx.micro", () => {
 
   describe("api.client", () => {
     it("when no API config", async () => {
+      const expectedEnv = {
+        EnvKey1: "HttpMockEnvKey1Value",
+        EnvKey2: "HttpMockEnvKey2Value",
+        EnvKey3: "HttpMockEnvKey3Value",
+        EnvKey4: "OriginalEnvKey4Value",
+      }
+
+      envSetupMock.setup((x) => x.teardown())
+      envSetupMock.setup((x) => x.setup(expectedEnv))
       httpMockkServerMocks.forEach((x, index) =>
         x
           .setup((x) => x.getEnvEntries())
@@ -79,6 +91,7 @@ describe("IntegrationTestCtx.micro", () => {
 
       testCtxFactory = configureIntegrationTestCtxProvider(
         defaultEnv,
+        envSetupMock.object,
         someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
         httpMockkServerMocks.map((x) => x.object),
       )
@@ -87,18 +100,14 @@ describe("IntegrationTestCtx.micro", () => {
       const ctx = await testCtxFactory()
 
       // then`
+
       assertThat(ctx).is({
         api: { client: match.any() },
         all: match.any(),
         each: match.any(),
         when: match.any(),
         httpMock: match.any(),
-        env: {
-          EnvKey1: "HttpMockEnvKey1Value",
-          EnvKey2: "HttpMockEnvKey2Value",
-          EnvKey3: "HttpMockEnvKey3Value",
-          EnvKey4: "OriginalEnvKey4Value",
-        },
+        env: expectedEnv,
       })
 
       try {
@@ -109,6 +118,16 @@ describe("IntegrationTestCtx.micro", () => {
       }
     })
     it("when API Config", async () => {
+      const expectedEnv = {
+        EnvKey1: "HttpMockEnvKey1Value",
+        EnvKey2: "HttpMockEnvKey2Value",
+        EnvKey3: "HttpMockEnvKey3Value",
+        EnvKey4: "OriginalEnvKey4Value",
+      }
+
+      envSetupMock.setup((x) => x.teardown())
+      envSetupMock.setup((x) => x.setup(expectedEnv))
+
       httpMockkServerMocks.forEach((x, index) =>
         x
           .setup((x) => x.getEnvEntries())
@@ -121,6 +140,7 @@ describe("IntegrationTestCtx.micro", () => {
 
       testCtxFactory = configureIntegrationTestCtxProvider(
         defaultEnv,
+        envSetupMock.object,
         someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
         httpMockkServerMocks.map((x) => x.object),
         clientAndServerProviderStub,
@@ -136,12 +156,7 @@ describe("IntegrationTestCtx.micro", () => {
         each: match.any(),
         when: match.any(),
         httpMock: match.any(),
-        env: {
-          EnvKey1: "HttpMockEnvKey1Value",
-          EnvKey2: "HttpMockEnvKey2Value",
-          EnvKey3: "HttpMockEnvKey3Value",
-          EnvKey4: "OriginalEnvKey4Value",
-        },
+        env: expectedEnv,
       })
 
       const restClient = await ctx.api.client()
@@ -151,10 +166,12 @@ describe("IntegrationTestCtx.micro", () => {
 
   describe("env", () => {
     it("when no mockServers", async () => {
-
+      envSetupMock.setup((x) => x.teardown())
+      envSetupMock.setup((x) => x.setup(defaultEnv))
 
       testCtxFactory = configureIntegrationTestCtxProvider(
         defaultEnv,
+        envSetupMock.object,
         someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
       )
 
@@ -172,6 +189,15 @@ describe("IntegrationTestCtx.micro", () => {
       })
     })
     it("when mockServers", async () => {
+      const expectedEnv = {
+        EnvKey1: "HttpMockEnvKey1Value",
+        EnvKey2: "HttpMockEnvKey2Value",
+        EnvKey3: "HttpMockEnvKey3Value",
+        EnvKey4: "OriginalEnvKey4Value",
+      }
+      envSetupMock.setup((x) => x.teardown())
+      envSetupMock.setup((x) => x.setup(expectedEnv))
+
       httpMockkServerMocks.forEach((x, index) =>
         x
           .setup((x) => x.getEnvEntries())
@@ -181,6 +207,7 @@ describe("IntegrationTestCtx.micro", () => {
 
       testCtxFactory = configureIntegrationTestCtxProvider(
         defaultEnv,
+        envSetupMock.object,
         someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
         httpMockkServerMocks.map((x) => x.object),
       )
@@ -195,12 +222,7 @@ describe("IntegrationTestCtx.micro", () => {
         each: match.any(),
         when: match.any(),
         httpMock: match.any(),
-        env: {
-          EnvKey1: "HttpMockEnvKey1Value",
-          EnvKey2: "HttpMockEnvKey2Value",
-          EnvKey3: "HttpMockEnvKey3Value",
-          EnvKey4: "OriginalEnvKey4Value",
-        },
+        env: expectedEnv,
       })
     })
   })
@@ -208,14 +230,30 @@ describe("IntegrationTestCtx.micro", () => {
   describe("each", () => {
     describe("before", () => {
       it("when givens and mockservers", async () => {
+        const expectedEnv = {
+          EnvKey1: "HttpMockEnvKey1Value",
+          EnvKey2: "HttpMockEnvKey2Value",
+          EnvKey3: "HttpMockEnvKey3Value",
+          EnvKey4: "OriginalEnvKey4Value",
+        };
+
+        envSetupMock.setup((x) => x.teardown())
+        envSetupMock.setup((x) => x.setup(expectedEnv))
+
         httpMockkServerMocks.forEach((x, index) =>
           x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
         )
 
+        givenMocks.forEach((mock, index) => mock.setup((x) => x.teardown()).returns(() => Promise.resolve(mock.object)))
         givenMocks.forEach((mock, index) => mock.setup((x) => x.setup()))
 
-        const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+        const testCtxFactory = await configureIntegrationTestCtxProvider<
+          SomeEnvKeys,
+          SomeMockServerNames,
+          SomeWhenDelta
+        >(
           defaultEnv,
+          envSetupMock.object,
           someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
           httpMockkServerMocks.map((x) => x.object),
           clientAndServerProviderStub,
@@ -228,8 +266,14 @@ describe("IntegrationTestCtx.micro", () => {
         await ctx.each.before()
       })
       it("when no givens or mockservers", async () => {
-        const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+
+
+        envSetupMock.setup((x) => x.teardown())
+        envSetupMock.setup((x) => x.setup(defaultEnv))
+
+        testCtxFactory = configureIntegrationTestCtxProvider(
           defaultEnv,
+          envSetupMock.object,
           someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
         )
 
@@ -240,14 +284,29 @@ describe("IntegrationTestCtx.micro", () => {
     })
     describe("after", () => {
       it("when givens and mockservers", async () => {
+
+        const expectedEnv = {
+          EnvKey1: "HttpMockEnvKey1Value",
+          EnvKey2: "HttpMockEnvKey2Value",
+          EnvKey3: "HttpMockEnvKey3Value",
+          EnvKey4: "OriginalEnvKey4Value",
+        };
+
+        envSetupMock.setup((x) => x.teardown())
+        envSetupMock.setup((x) => x.setup(expectedEnv))
+
         httpMockkServerMocks.forEach((x, index) =>
           x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
         )
         httpMockkServerMocks.forEach((x) => x.setup((x) => x.verify()).returns(() => Promise.resolve()))
-        givenMocks.forEach((mock, index) => mock.setup((x) => x.tearDown()))
 
-        const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+        const testCtxFactory = await configureIntegrationTestCtxProvider<
+          SomeEnvKeys,
+          SomeMockServerNames,
+          SomeWhenDelta
+        >(
           defaultEnv,
+          envSetupMock.object,
           someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
           httpMockkServerMocks.map((x) => x.object),
           clientAndServerProviderStub,
@@ -260,8 +319,11 @@ describe("IntegrationTestCtx.micro", () => {
         await ctx.each.after()
       })
       it("when no givens and no mock servers", async () => {
-        const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+        envSetupMock.setup((x) => x.teardown())
+        envSetupMock.setup((x) => x.setup(defaultEnv))
+        testCtxFactory = configureIntegrationTestCtxProvider(
           defaultEnv,
+          envSetupMock.object,
           someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
         )
 
@@ -269,21 +331,36 @@ describe("IntegrationTestCtx.micro", () => {
         const ctx = await testCtxFactory()
         await ctx.each.after()
       })
-
-  })
+    })
   })
 
   describe("all", () => {
     describe("before", () => {
       it("when givens and mockservers", async () => {
+
+        const expectedEnv = {
+          EnvKey1: "HttpMockEnvKey1Value",
+          EnvKey2: "HttpMockEnvKey2Value",
+          EnvKey3: "HttpMockEnvKey3Value",
+          EnvKey4: "OriginalEnvKey4Value",
+        };
+
+        envSetupMock.setup((x) => x.teardown())
+        envSetupMock.setup((x) => x.setup(expectedEnv))
+
         httpMockkServerMocks.forEach((x, index) =>
           x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
         )
         httpMockkServerMocks.forEach((x) => x.setup((x) => x.listen()).returns(() => Promise.resolve()))
-        givenMocks.forEach((mock, index) => mock.setup((x) => x.setup()))
 
-        const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+        givenMocks.forEach((mock) =>
+          mock.setup((given) => given.teardown()).returns(() => Promise.resolve(mock.object)),
+        )
+        givenMocks.forEach((mock) => mock.setup((given) => given.setup()).returns(() => Promise.resolve(mock.object)))
+
+        testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
           defaultEnv,
+          envSetupMock.object,
           someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
           httpMockkServerMocks.map((x) => x.object),
           clientAndServerProviderStub,
@@ -297,10 +374,15 @@ describe("IntegrationTestCtx.micro", () => {
       })
       it("when no givens and no mockservers", async () => {
 
-        const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+        envSetupMock.setup((x) => x.teardown())
+        envSetupMock.setup((x) => x.setup(defaultEnv))
+
+        testCtxFactory = configureIntegrationTestCtxProvider(
           defaultEnv,
+          envSetupMock.object,
           someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
         )
+
         // when
         const ctx = await testCtxFactory()
         await ctx.all.before()
@@ -308,15 +390,26 @@ describe("IntegrationTestCtx.micro", () => {
     })
     describe("after", () => {
       it("when api config and givens and mockservers", async () => {
+
+        const expectedEnv = {
+          EnvKey1: "HttpMockEnvKey1Value",
+          EnvKey2: "HttpMockEnvKey2Value",
+          EnvKey3: "HttpMockEnvKey3Value",
+          EnvKey4: "OriginalEnvKey4Value",
+        };
+
+        envSetupMock.setup((x) => x.teardown())
+        envSetupMock.setup((x) => x.setup(expectedEnv))
+
         httpMockkServerMocks.forEach((x, index) =>
           x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
         )
         clientAndServerMock.setup((clientandServer) => clientandServer.close()).returns(() => Promise.resolve())
         httpMockkServerMocks.forEach((x) => x.setup((x) => x.close()).returns(() => Promise.resolve()))
-        givenMocks.forEach((mock, index) => mock.setup((x) => x.tearDown()))
 
-        const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+        testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
           defaultEnv,
+          envSetupMock.object,
           someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
           httpMockkServerMocks.map((x) => x.object),
           clientAndServerProviderStub,
@@ -330,8 +423,13 @@ describe("IntegrationTestCtx.micro", () => {
       })
       it("when no api config or givens or mockservers", async () => {
 
-        const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+
+        envSetupMock.setup((x) => x.teardown())
+        envSetupMock.setup((x) => x.setup(defaultEnv))
+
+        testCtxFactory = configureIntegrationTestCtxProvider(
           defaultEnv,
+          envSetupMock.object,
           someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
         )
 
@@ -348,6 +446,16 @@ describe("IntegrationTestCtx.micro", () => {
       const firstSnapshot = someFixture.someObjectOfType<SomeWhenDelta>()
       const expectedDelta = someFixture.someObjectOfType<SomeWhenDelta>()
 
+      const expectedEnv = {
+        EnvKey1: "HttpMockEnvKey1Value",
+        EnvKey2: "HttpMockEnvKey2Value",
+        EnvKey3: "HttpMockEnvKey3Value",
+        EnvKey4: "OriginalEnvKey4Value",
+      };
+
+      envSetupMock.setup((x) => x.teardown())
+      envSetupMock.setup((x) => x.setup(expectedEnv))
+
       whenDeltaConfigMock.setup((x) => x.snapshot()).returns(() => Promise.resolve(firstSnapshot))
       whenDeltaConfigMock.setup((x) => x.diff(firstSnapshot)).returns(() => Promise.resolve(expectedDelta))
 
@@ -357,6 +465,7 @@ describe("IntegrationTestCtx.micro", () => {
 
       const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
         defaultEnv,
+        envSetupMock.object,
         whenDeltaConfigMock.object,
         httpMockkServerMocks.map((x) => x.object),
         clientAndServerProviderStub,
@@ -382,12 +491,23 @@ describe("IntegrationTestCtx.micro", () => {
 
       whenDeltaConfigMock.setup((x) => x.snapshot()).returns(() => Promise.resolve(firstSnapshot))
 
+      const expectedEnv = {
+        EnvKey1: "HttpMockEnvKey1Value",
+        EnvKey2: "HttpMockEnvKey2Value",
+        EnvKey3: "HttpMockEnvKey3Value",
+        EnvKey4: "OriginalEnvKey4Value",
+      };
+
+      envSetupMock.setup((x) => x.teardown())
+      envSetupMock.setup((x) => x.setup(expectedEnv))
+
       httpMockkServerMocks.forEach((x, index) =>
         x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
       )
 
       const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
         defaultEnv,
+        envSetupMock.object,
         whenDeltaConfigMock.object,
         httpMockkServerMocks.map((x) => x.object),
         clientAndServerProviderStub,

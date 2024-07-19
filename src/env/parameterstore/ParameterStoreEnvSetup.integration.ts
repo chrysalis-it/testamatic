@@ -1,11 +1,14 @@
 import { assertThat, match } from "mismatched"
 import axios from "axios"
-import { ParamStoreSetup } from "./ParameterStoreSetup"
 import { local } from "../../test/local"
 import {someFixture} from "../../fixture/someFixture";
+import {ParamStoreEnvSetup} from "./ParameterStoreEnvSetup";
+import {EnvVars} from "../../integration/IntegrationTestCtx";
 
-class SomeClass {
-  go() {}
+type EnvKeys = "pstoreVarName"
+
+const env: EnvVars<EnvKeys> = {
+  pstoreVarName: "somePStoreValue"
 }
 
 describe("ParameterStoreSetup.integration.ts", () => {
@@ -17,18 +20,10 @@ describe("ParameterStoreSetup.integration.ts", () => {
   describe("ParameterStoreSetup.integration.ts", () => {
     it("setup and teardown one string var", async () => {
       const path = `/some/${someFixture.someUniqueString("unique")}/pstore/path`
-      const varName = someFixture.someUniqueString("pstoreVarName")
-      let pstoreVarValue = "somePStoreValue"
-      const setup = new ParamStoreSetup(local.awsClients.ssm, [
-        {
-          path: path,
-          type: "String",
-          value: pstoreVarValue,
-          varName: varName,
-        },
-      ])
 
-      await setup.setup()
+      const setup = new ParamStoreEnvSetup( path, local.awsClients.ssm)
+
+      await setup.setup(env)
 
       const parametersAfterSetup = await local.awsClients.ssm
         .getParametersByPath({
@@ -38,9 +33,9 @@ describe("ParameterStoreSetup.integration.ts", () => {
 
       assertThat(parametersAfterSetup.Parameters).is([
         {
-          Name: `${path}/${varName}`,
+          Name: `${path}/${Object.keys(env)[0]}`,
           Type: "String",
-          Value: pstoreVarValue,
+          Value: Object.values(env)[0],
           Version: 1,
           LastModifiedDate: match.any(),
           ARN: match.any(),
@@ -48,7 +43,7 @@ describe("ParameterStoreSetup.integration.ts", () => {
         },
       ])
 
-      await setup.tearDown()
+      await setup.teardown()
 
       const parametersAfterTeardown = await local.awsClients.ssm
         .getParametersByPath({

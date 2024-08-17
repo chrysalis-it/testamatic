@@ -463,6 +463,9 @@ describe("IntegrationTestCtx.micro", () => {
         x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
       )
 
+      httpMockkServerMocks.forEach((x) => x.setup((x) => x.verify()).returns(() => Promise.resolve()))
+
+
       const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
         defaultEnv,
         envSetupMock.object,
@@ -504,6 +507,8 @@ describe("IntegrationTestCtx.micro", () => {
       httpMockkServerMocks.forEach((x, index) =>
         x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
       )
+      httpMockkServerMocks.forEach((x) => x.setup((x) => x.verify()).returns(() => Promise.resolve()))
+
 
       const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
         defaultEnv,

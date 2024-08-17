@@ -1,6 +1,6 @@
 import http from "http"
-import {logger} from "../logger/Logger"
-import {MockHttpServer} from "./mockHttpServer/MockHttpServer"
+import { logger } from "../logger/Logger"
+import { MockHttpServer } from "./mockHttpServer/MockHttpServer"
 import {
   API,
   BeforeAndAfter,
@@ -10,11 +10,11 @@ import {
   MockServerExpecter,
   WHENRESPONSE,
 } from "./IntegrationTestCtx"
-import {ClientAndServer, ClientAndServerProvider} from "./defaultClientAndServerProvider"
-import {MockHttpServerExpectation} from "./mockHttpServer/MockHttpExpectation";
+import { ClientAndServer, ClientAndServerProvider } from "./defaultClientAndServerProvider"
+import { MockHttpServerExpectation } from "./mockHttpServer/MockHttpExpectation"
 
 export type EnvSetup<ENVKEYS extends string> = {
-  setup: (env: EnvVars<ENVKEYS>) =>  Promise<EnvSetup<ENVKEYS>>
+  setup: (env: EnvVars<ENVKEYS>) => Promise<EnvSetup<ENVKEYS>>
   teardown: () => Promise<EnvSetup<ENVKEYS>>
 }
 export interface Given {
@@ -43,23 +43,13 @@ export const configureIntegrationTestCtxProvider = <
     // Only setup once, might want to re-create before each test
     const clientAndServerPromise = clientAndServerProvider ? clientAndServerProvider(env) : undefined
 
-    const each = beforeAndAfterEachMaker(mockHttpServers, beforeEach)
-
-    const all = beforeAndAfterAllMaker(mockHttpServers, beforeAll, clientAndServerPromise)
-
-    const httpMock = mockServerExpectionSetter(mockHttpServers)
-
-    const api = await apiMaker(clientAndServerPromise)
-
-    const when = whenMaker<WHENDELTA>(whenDeltaConfig)
-
     return {
       env: env,
-      all: all,
-      each: each,
-      httpMock: httpMock,
-      api: api,
-      when: when,
+      all: beforeAndAfterAllMaker(mockHttpServers, beforeAll, clientAndServerPromise),
+      each: beforeAndAfterEachMaker(mockHttpServers, beforeEach),
+      httpMock: mockServerExpectionSetter(mockHttpServers),
+      api: await apiMaker(clientAndServerPromise),
+      when: whenMaker<WHENDELTA>(mockHttpServers, whenDeltaConfig),
     }
   }
 }
@@ -143,9 +133,8 @@ const apiMaker = (clientAndServerPromise?: Promise<ClientAndServer>): Promise<AP
   }))
 }
 
-// TODO should I return error
 const whenMaker =
-  <WHENDELTA extends object>(whenDeltaConfig: WhenDeltaConfig<WHENDELTA>) =>
+  <WHENDELTA extends object>(mockHttpServers: MockHttpServer[], whenDeltaConfig: WhenDeltaConfig<WHENDELTA>) =>
   async <RES>(isExecuted: IsExecuted<RES>): Promise<WHENRESPONSE<RES, WHENDELTA>> => {
     try {
       const before: WHENDELTA = await whenDeltaConfig.snapshot()
@@ -158,5 +147,6 @@ const whenMaker =
       logger.error(`Error in WHEN`, e)
       throw e
     } finally {
+      mockHttpServers.forEach((x) => x.verify())
     }
   }

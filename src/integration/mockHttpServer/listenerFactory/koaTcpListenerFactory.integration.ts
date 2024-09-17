@@ -1,16 +1,17 @@
 import { assertThat, match } from "mismatched"
-import { koaTcpListenerFactory } from "./koaTcpListenerFactory"
-import { MockConfig, MockHttpServerFailure, MockTcpListener, TCPConfig } from "../MockHttpServer"
+import { mockServerkoaTcpListenerFactory } from "./mockServerkoaTcpListenerFactory"
+import { MockConfig, MockHttpServerFailure} from "../MockHttpServer"
 import { RestClient } from "typed-rest-client"
 import { MockHttpServerExpectation } from "../MockHttpExpectation"
 import axios from "axios"
+import {TCPConfig, TcpListener} from "../../../tcp/tcp.types";
 
 class SomeClass {
   go() {}
 }
 
 describe("koaTcpListenerFactory.integration", () => {
-  let listener: MockTcpListener
+  let listener: TcpListener
 
   const axiosClient = axios.create({
     validateStatus: (status) => true,
@@ -36,7 +37,7 @@ describe("koaTcpListenerFactory.integration", () => {
       registerFailure: (failure: MockHttpServerFailure) => failures.push(failure),
       getApplicableExpectation: (matcCtx) => undefined,
     }
-    listener = await koaTcpListenerFactory(tcpConfig, mockConfig)
+    listener = await mockServerkoaTcpListenerFactory(mockConfig ,tcpConfig )
 
     const response = await axiosClient.get<undefined>(`${listener.onUrl}/hello`)
 
@@ -84,7 +85,7 @@ describe("koaTcpListenerFactory.integration", () => {
       registerFailure: (failure: MockHttpServerFailure) => failures.push(failure),
       getApplicableExpectation: () => nextExpectation,
     }
-    listener = await koaTcpListenerFactory(tcpConfig, mockConfig)
+    listener = await mockServerkoaTcpListenerFactory(mockConfig,tcpConfig )
 
 
     const response = await axiosClient.get(`${listener.onUrl}/hello`)
@@ -128,7 +129,7 @@ describe("koaTcpListenerFactory.integration", () => {
       registerFailure: (failure: MockHttpServerFailure) => failures.push(failure),
       getApplicableExpectation: () => nextExpectation,
     }
-    listener = await koaTcpListenerFactory(tcpConfig, mockConfig)
+    listener = await mockServerkoaTcpListenerFactory(mockConfig, tcpConfig )
 
     const response = await axiosClient.get(`${listener.onUrl}/${expectedPath}`)
 

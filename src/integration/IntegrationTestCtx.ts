@@ -19,8 +19,8 @@ export type WHEN<WHENDELTA extends object> = <RES>(isExecuted: IsExecuted<RES>) 
 export type IntegrationTestCtx<ENVKEYS extends string, MOCKSERVERNAMES extends string, WHENDELTA extends object> = {
   each: BeforeAndAfter
   all: BeforeAndAfter
-  api: API
-  env: EnvVars<ENVKEYS>
   httpMock: MockServerExpecter<MOCKSERVERNAMES, ENVKEYS>
   when: WHEN<WHENDELTA>
+  api: API
+  env: EnvVars<ENVKEYS>
 }

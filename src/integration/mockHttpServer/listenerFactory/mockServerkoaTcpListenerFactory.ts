@@ -1,34 +1,15 @@
-import { Server } from "http"
 import Koa from "koa"
 import bodyParser from "koa-bodyparser"
 import sslify from "koa-sslify"
-import { MockConfig, MockTcpListener, MockTcpListenerFactory, TCPConfig } from "../MockHttpServer"
 import { mockHttpServerExpectationMatchesRequest, RequestMatchInfo } from "../MockHttpExpectation"
 import { isFunction } from "util"
 import { PrettyPrinter } from "mismatched"
+import { MockConfig, MockTcpListenerFactory } from "../MockHttpServer"
+import {koaTcpListenerFactory} from "../../../packages/koa/koaTcpListenerFactory";
+import {TCPConfig} from "../../../tcp/tcp.types";
 
-export const koaTcpListenerFactory: MockTcpListenerFactory = (tcpConfig: TCPConfig, mockConfig: MockConfig) =>
-  new Promise<MockTcpListener>((resolve, reject) => {
-    const koa = new Koa()
-    koa.use(sslify({ resolver: () => true }))
-    koa.use(bodyParser())
-    koa.use(reqHandlerMaker(mockConfig))
-    const onUrl = `${tcpConfig.protocol}://${tcpConfig.host}:${tcpConfig.port}`
-    try {
-      const server = koa.listen(
-        {
-          port: tcpConfig.port,
-          host: tcpConfig.host,
-        },
-        () => {
-          console.log(`🚀 ${mockConfig.mockServerName} mock http server listening on ${onUrl}`)
-          resolve({ onUrl, close: closeTcpListenerMaker(mockConfig.mockServerName, onUrl, server) })
-        },
-      )
-    } catch (err) {
-      reject(err)
-    }
-  })
+export const mockServerkoaTcpListenerFactory: MockTcpListenerFactory =( mockConfig: MockConfig, tcpConfig: TCPConfig)  =>
+  koaTcpListenerFactory(tcpConfig, [sslify({ resolver: () => true }), bodyParser(), reqHandlerMaker(mockConfig)], `${mockConfig.mockServerName} mock server`)
 
 // TODO is this the right type Koa.Context
 const reqHandlerMaker = (mockConfig: MockConfig) => async (koaCtx: Koa.Context) => {
@@ -64,7 +45,10 @@ const reqHandlerMaker = (mockConfig: MockConfig) => async (koaCtx: Koa.Context) 
     koaCtx.statusText = "Expectation did not match"
     return
   }
-  console.info(`${mockConfig.mockServerName} Mock Server request matched expectation`, PrettyPrinter.make().render(applicableExpectation.requestMatcher))
+  console.info(
+    `${mockConfig.mockServerName} Mock Server request matched expectation`,
+    PrettyPrinter.make().render(applicableExpectation.requestMatcher),
+  )
   koaCtx.body = isFunction(applicableExpectation.response.body)
     ? (applicableExpectation.response.body as (req: unknown) => unknown)(reqInfo)
     : applicableExpectation.response.body
@@ -75,16 +59,3 @@ const reqHandlerMaker = (mockConfig: MockConfig) => async (koaCtx: Koa.Context) 
   const { body, status, statusText, headers } = koaCtx
   console.info(`Mock Server Sending Response`, { status, statusText, headers, body })
 }
-
-const closeTcpListenerMaker = (mockServerName: string, url: string, server: Server) => () =>
-  new Promise<void>((resolve, reject) => {
-    if (server) {
-      server.close((err) => {
-        if (err) {
-          reject(err)
-        }
-        console.log(`🚀 ${mockServerName} mock http server  on ${url} stopped`)
-        resolve()
-      })
-    }
-  })

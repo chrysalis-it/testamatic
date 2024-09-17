@@ -1,15 +1,13 @@
 import { EnvVars } from "../IntegrationTestCtx"
 import { logger } from "../../logger/Logger"
 import {
-  mockHttpServerExpectationMatchesRequest,
-  HttpRequestMatcher,
   MockHttpServerExpectation,
-  RequestMatchInfo
+  mockHttpServerExpectationMatchesRequest,
+  RequestMatchInfo,
 } from "./MockHttpExpectation"
-import {matchMaker} from "mismatched";
+import {TCPConfig, TcpListener} from "../../tcp/tcp.types";
 
-export type MockTcpListener = { onUrl: string; close: () => Promise<void> }
-export type MockTcpListenerFactory = (tcpConfig: TCPConfig, mockConfig: MockConfig) => Promise<MockTcpListener>
+export type MockTcpListenerFactory = (mockConfig: MockConfig, tcpConfig: TCPConfig) => Promise<TcpListener>
 
 export interface MockHttpServerFailure {
   reason: string
@@ -20,7 +18,7 @@ export interface MockHttpServerFailure {
 export class MockHttpServer<MOCKSERVERNAMES extends string = any, ENVKEYS extends string = any> {
   private static nextServerPort = 9900
   private tcpCfg: TCPConfig
-  private tcpListener: MockTcpListener
+  private tcpListener: TcpListener
   private expectations: MockHttpServerExpectation[] = []
   private stubs: MockHttpServerExpectation[] = []
   private failures: MockHttpServerFailure[] = []
@@ -30,7 +28,7 @@ export class MockHttpServer<MOCKSERVERNAMES extends string = any, ENVKEYS extend
     private urlEnvKey: ENVKEYS,
     host: string = "localhost",
     private protocol: "http" | "https" = "http",
-    private listenerFactory: MockTcpListenerFactory
+    private listenerFactory: MockTcpListenerFactory,
   ) {
     this.tcpCfg = {
       port: MockHttpServer.nextServerPort++,
@@ -41,19 +39,24 @@ export class MockHttpServer<MOCKSERVERNAMES extends string = any, ENVKEYS extend
 
   async listen(): Promise<void> {
     if (this.tcpListener) throw new Error("Cant call listen once tcpListener already started")
-    this.tcpListener = await this.listenerFactory(this.tcpCfg, {
-      getApplicableExpectation: (requestMatchInfo: RequestMatchInfo) => {
-        let nextExpectation = this.expectations.shift()
-        if (!nextExpectation) {
-          const lookForStubs = this.stubs.filter((stub) => mockHttpServerExpectationMatchesRequest(stub, requestMatchInfo))
-          if (lookForStubs.length > 1) throw Error("More than one stub matches")
-          nextExpectation = lookForStubs[0]
-        }
-        return nextExpectation
+    this.tcpListener = await this.listenerFactory(
+      {
+        getApplicableExpectation: (requestMatchInfo: RequestMatchInfo) => {
+          let nextExpectation = this.expectations.shift()
+          if (!nextExpectation) {
+            const lookForStubs = this.stubs.filter((stub) =>
+              mockHttpServerExpectationMatchesRequest(stub, requestMatchInfo),
+            )
+            if (lookForStubs.length > 1) throw Error("More than one stub matches")
+            nextExpectation = lookForStubs[0]
+          }
+          return nextExpectation
+        },
+        registerFailure: (failure: MockHttpServerFailure) => this.failures.push(failure),
+        mockServerName: this.name,
       },
-      registerFailure: (failure: MockHttpServerFailure) => this.failures.push(failure),
-      mockServerName: this.name,
-    })
+      this.tcpCfg,
+    )
     logger.info(`Mock server listening on ${this.tcpListener.onUrl}`)
   }
 
@@ -101,11 +104,6 @@ export class MockHttpServer<MOCKSERVERNAMES extends string = any, ENVKEYS extend
   }
 }
 
-export type TCPConfig = {
-  protocol: "http" | "https"
-  port: number
-  host: string
-}
 
 export type MockConfig = {
   mockServerName: string

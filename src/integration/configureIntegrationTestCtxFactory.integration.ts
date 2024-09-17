@@ -28,7 +28,7 @@ const expressTcpListener =  (router: ExRouter) => async (env: EnvVars<SomeEnvKey
 
 describe("configureIntegrationTestCtxFactory.integration", () => {
   describe("test runs with", () => {
-    it.only("no mock servers", async () => {
+    it("no mock servers", async () => {
       const router = ExRouter()
       const url = "/";
       const expectedResponse = "yes I am alive AND LIFE IS GOOD!";
@@ -63,34 +63,5 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
       await ctx.all.after()
 
     })
-
-    it("mock servers", async () => {
-      const router = ExRouter()
-      const url = "/";
-      const expectedResponse = "yes I am alive AND LIFE IS GOOD!";
-      router.get( url, (req, res) => {
-        res.send(expectedResponse)
-      })
-
-      const testCtx = configureIntegrationTestCtxProvider<SomeEnvKeys>(
-        {
-          EnvKeyOne: "EnvValueOne",
-          EnvKeyTwo: "EnvValueTwo",
-        },
-        new ParamStoreEnvSetup(pstorePath, local.awsClients.ssm),
-        {
-          snapshot: () => Promise.resolve({}),
-          diff: (first: {}) => Promise.resolve({}),
-        },
-        expressTcpListener(router),
-      )
-      const ctx = await testCtx()
-      const whenResponse = await ctx.when(() => ctx.api.client().get<string>(url))
-
-      assertThat(whenResponse.delta).is({});
-      assertThat(whenResponse.response.statusCode).is(200);
-
-    })
-
   })
 })

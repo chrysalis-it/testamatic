@@ -86,7 +86,7 @@ const mockServerExpectionSetter = <MOCKSERVERNAMES extends string, ENVKEYS exten
 ): MockServerExpecter<MOCKSERVERNAMES, ENVKEYS> => ({
   expect: (name: MOCKSERVERNAMES, expectation: MockHttpServerExpectation) => {
     const mockServer = mockHttpServersx.find((x) => x.name === name)
-    if (!mockServer) throw new Error(`Cant find mock server ${name}`)
+    if (!mockServer) throw new Error(`Can not find mock server using name ${name}`)
     return mockServer.expect(expectation)
   },
 })

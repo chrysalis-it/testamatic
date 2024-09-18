@@ -63,5 +63,43 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
       await ctx.all.after()
 
     })
+    it("with mock servers", async () => {
+      const router = ExRouter()
+      const url = "/";
+      const expectedResponse = "yes I am alive AND LIFE IS GOOD!";
+      router.get( url, (req, res) => {
+        res.json(expectedResponse)
+      })
+
+      const testCtx = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
+        {
+          EnvKeyOne: "EnvValueOne",
+          EnvKeyTwo: "EnvValueTwo",
+        },
+        new ParamStoreEnvSetup(pstorePath, local.awsClients.ssm),
+        {
+          snapshot: () => Promise.resolve({}),
+          diff: (first: {}) => Promise.resolve({}),
+        },
+        expressTcpListener(router),
+      )
+      const ctx = await testCtx()
+
+
+      await ctx.all.before()
+      await ctx.each.before()
+
+      ctx.httpMock.expect("")
+
+      const whenResponse = await ctx.when(() => ctx.api.client().get<string>(url))
+      assertThat(whenResponse.delta).is({});
+      assertThat(whenResponse.response.statusCode).is(200);
+      assertThat(whenResponse.response.result).is(expectedResponse)
+
+      await ctx.each.after()
+      await ctx.all.after()
+
+    })
+
   })
 })

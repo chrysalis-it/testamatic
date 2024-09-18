@@ -9,8 +9,8 @@ import {
   EnvSetup,
   Given,
   IntegrationTestCtxProvider,
-  ServerProvider,
-  WhenDeltaConfig,
+  ClientAndServerProvider,
+  WhenDeltaConfig, ClientAndServer,
 } from "./configureIntegrationTestCtxFactory"
 import {TcpListener} from "../tcp/tcp.types";
 import {MockHttpServerExpectation} from "./mockHttpServer/MockHttpExpectation";
@@ -41,10 +41,10 @@ describe("IntegrationTestCtx.micro", () => {
   let mocks: Thespian
   let httpMockkServerMocks: TMocked<MockHttpServer<any, any>>[]
   let apiMock: TMocked<http.Server>
-  let serverMock: TMocked<TcpListener>
+  let clientAndServerMock: TMocked<ClientAndServer>
   let envSetupMock: TMocked<EnvSetup<SomeEnvKeys>>
   let testCtxFactory: IntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>
-  let serverProviderMock: TMocked<ServerProvider<SomeEnvKeys>>
+  let clientAndServerProviderMock: TMocked<ClientAndServerProvider<SomeEnvKeys>>
 
   let givenMocks: TMocked<Given>[]
 
@@ -57,12 +57,12 @@ describe("IntegrationTestCtx.micro", () => {
       mocks.mock("HttpMockkServer3"),
     ]
     apiMock = mocks.mock("apiMock")
-    serverMock = mocks.mock("clientAndServerMock")
+    clientAndServerMock = mocks.mock("clientAndServerMock")
     envSetupMock = mocks.mock("envSetupMock")
 
     givenMocks = [mocks.mock("beforeMock1"), mocks.mock("beforeMock2"), mocks.mock("beforeMock3")]
 
-    serverProviderMock = mocks.mock("serverProviderMock")
+    clientAndServerProviderMock = mocks.mock("clientAndServerProviderMock")
   })
 
   afterEach(() => {
@@ -72,7 +72,7 @@ describe("IntegrationTestCtx.micro", () => {
   describe("configureIntegrationTestCtxProvider()", () => {
     it("configureIntegrationTestCtxProvider doesnt call anything", () => {
       testCtxFactory = configureIntegrationTestCtxProvider(
-        serverProviderMock.object,
+        clientAndServerProviderMock.object,
         {
           defaultEnv,
           envSetup: envSetupMock.object,
@@ -87,7 +87,7 @@ describe("IntegrationTestCtx.micro", () => {
   describe("integrationTestCtxProvider()", () => {
     it("no mock servers", async () => {
       testCtxFactory = configureIntegrationTestCtxProvider(
-        serverProviderMock.object,
+        clientAndServerProviderMock.object,
         {
           defaultEnv,
           envSetup: envSetupMock.object,
@@ -96,8 +96,7 @@ describe("IntegrationTestCtx.micro", () => {
       )
 
       envSetupMock.setup((x) => x.teardown())
-      serverProviderMock.setup(x => x(defaultEnv)).returns(() => Promise.resolve(serverMock.object))
-      serverMock.setup(x => x.onUrl).returns(()=> "someUrl")
+      clientAndServerProviderMock.setup(x => x(defaultEnv)).returns(() => Promise.resolve(clientAndServerMock.object))
       envSetupMock.setup((x) => x.setup(defaultEnv))
 
       const ctx = await testCtxFactory()
@@ -122,8 +121,7 @@ describe("IntegrationTestCtx.micro", () => {
       }
       envSetupMock.setup((x) => x.teardown())
       envSetupMock.setup((x) => x.setup(expectedEnv))
-      serverProviderMock.setup(x => x(expectedEnv)).returns(() => Promise.resolve(serverMock.object))
-      serverMock.setup(x => x.onUrl).returns(()=> "someUrl")
+      clientAndServerProviderMock.setup(x => x(expectedEnv)).returns(() => Promise.resolve(clientAndServerMock.object))
 
       httpMockkServerMocks.forEach((x, index) =>
         x
@@ -133,7 +131,7 @@ describe("IntegrationTestCtx.micro", () => {
       )
 
       testCtxFactory = configureIntegrationTestCtxProvider(
-        serverProviderMock.object,
+        clientAndServerProviderMock.object,
         {
           defaultEnv,
           envSetup: envSetupMock.object,
@@ -171,8 +169,7 @@ describe("IntegrationTestCtx.micro", () => {
 
         envSetupMock.setup((x) => x.teardown())
         envSetupMock.setup((x) => x.setup(expectedEnv))
-        serverProviderMock.setup(x => x(expectedEnv)).returns(() => Promise.resolve(serverMock.object))
-        serverMock.setup(x => x.onUrl).returns(()=> "someUrl")
+        clientAndServerProviderMock.setup(x => x(expectedEnv)).returns(() => Promise.resolve(clientAndServerMock.object))
 
 
         httpMockkServerMocks.forEach((x, index) =>
@@ -187,7 +184,7 @@ describe("IntegrationTestCtx.micro", () => {
           SomeMockServerNames,
           SomeWhenDelta
         >(
-          serverProviderMock.object,
+          clientAndServerProviderMock.object,
           {
             defaultEnv,
             envSetup: envSetupMock.object,
@@ -208,11 +205,10 @@ describe("IntegrationTestCtx.micro", () => {
 
         envSetupMock.setup((x) => x.teardown())
         envSetupMock.setup((x) => x.setup(defaultEnv))
-        serverProviderMock.setup(x => x(defaultEnv)).returns(() => Promise.resolve(serverMock.object))
-        serverMock.setup(x => x.onUrl).returns(()=> "someUrl")
+        clientAndServerProviderMock.setup(x => x(defaultEnv)).returns(() => Promise.resolve(clientAndServerMock.object))
 
         testCtxFactory = configureIntegrationTestCtxProvider(
-          serverProviderMock.object,
+          clientAndServerProviderMock.object,
           {
             defaultEnv,
             envSetup: envSetupMock.object,
@@ -237,8 +233,7 @@ describe("IntegrationTestCtx.micro", () => {
 
         envSetupMock.setup((x) => x.teardown())
         envSetupMock.setup((x) => x.setup(expectedEnv))
-        serverProviderMock.setup(x => x(expectedEnv)).returns(() => Promise.resolve(serverMock.object))
-        serverMock.setup(x => x.onUrl).returns(x => "someUrl")
+        clientAndServerProviderMock.setup(x => x(expectedEnv)).returns(() => Promise.resolve(clientAndServerMock.object))
 
 
         httpMockkServerMocks.forEach((x, index) =>
@@ -251,7 +246,7 @@ describe("IntegrationTestCtx.micro", () => {
           SomeMockServerNames,
           SomeWhenDelta
         >(
-          serverProviderMock.object,
+          clientAndServerProviderMock.object,
           {
             defaultEnv,
             envSetup: envSetupMock.object,
@@ -269,12 +264,11 @@ describe("IntegrationTestCtx.micro", () => {
       it("when no givens and no mock servers", async () => {
         envSetupMock.setup((x) => x.teardown())
         envSetupMock.setup((x) => x.setup(defaultEnv))
-        serverProviderMock.setup(x => x(defaultEnv)).returns(() => Promise.resolve(serverMock.object))
-        serverMock.setup(x => x.onUrl).returns(x => "someUrl")
+        clientAndServerProviderMock.setup(x => x(defaultEnv)).returns(() => Promise.resolve(clientAndServerMock.object))
 
 
         testCtxFactory = configureIntegrationTestCtxProvider(
-          serverProviderMock.object,
+          clientAndServerProviderMock.object,
           {
             defaultEnv,
             envSetup: envSetupMock.object,
@@ -302,12 +296,11 @@ describe("IntegrationTestCtx.micro", () => {
 
         envSetupMock.setup((x) => x.teardown())
         envSetupMock.setup((x) => x.setup(expectedEnv))
-        serverProviderMock.setup(x => x(expectedEnv)).returns(() => Promise.resolve(serverMock.object))
-        serverMock.setup(x => x.onUrl).returns(x => "someUrl")
+        clientAndServerProviderMock.setup(x => x(expectedEnv)).returns(() => Promise.resolve(clientAndServerMock.object))
         httpMockkServerMocks[0].setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[0])
 
         testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-          serverProviderMock.object,
+          clientAndServerProviderMock.object,
           {
             defaultEnv,
             envSetup: envSetupMock.object,
@@ -332,11 +325,10 @@ describe("IntegrationTestCtx.micro", () => {
 
         envSetupMock.setup((x) => x.teardown())
         envSetupMock.setup((x) => x.setup(defaultEnv))
-        serverProviderMock.setup(x => x(defaultEnv)).returns(() => Promise.resolve(serverMock.object))
-        serverMock.setup(x => x.onUrl).returns(x => "someUrl")
+        clientAndServerProviderMock.setup(x => x(defaultEnv)).returns(() => Promise.resolve(clientAndServerMock.object))
 
         testCtxFactory = configureIntegrationTestCtxProvider(
-          serverProviderMock.object,
+          clientAndServerProviderMock.object,
           {
             defaultEnv,
             envSetup: envSetupMock.object,
@@ -371,8 +363,7 @@ describe("IntegrationTestCtx.micro", () => {
 
         envSetupMock.setup((x) => x.teardown())
         envSetupMock.setup((x) => x.setup(expectedEnv))
-        serverProviderMock.setup(x => x(expectedEnv)).returns(() => Promise.resolve(serverMock.object))
-        serverMock.setup(x => x.onUrl).returns(x => "someUrl")
+        clientAndServerProviderMock.setup(x => x(expectedEnv)).returns(() => Promise.resolve(clientAndServerMock.object))
 
 
         httpMockkServerMocks.forEach((x, index) =>
@@ -386,7 +377,7 @@ describe("IntegrationTestCtx.micro", () => {
         givenMocks.forEach((mock) => mock.setup((given) => given.setup()).returns(() => Promise.resolve(mock.object)))
 
         testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-          serverProviderMock.object,
+          clientAndServerProviderMock.object,
           {
             defaultEnv,
             envSetup: envSetupMock.object,
@@ -405,11 +396,10 @@ describe("IntegrationTestCtx.micro", () => {
 
         envSetupMock.setup((x) => x.teardown())
         envSetupMock.setup((x) => x.setup(defaultEnv))
-        serverProviderMock.setup(x => x(defaultEnv)).returns(() => Promise.resolve(serverMock.object))
-        serverMock.setup(x => x.onUrl).returns(x => "someUrl")
+        clientAndServerProviderMock.setup(x => x(defaultEnv)).returns(() => Promise.resolve(clientAndServerMock.object))
 
         testCtxFactory = configureIntegrationTestCtxProvider(
-          serverProviderMock.object,
+          clientAndServerProviderMock.object,
           {
             defaultEnv,
             envSetup: envSetupMock.object,
@@ -434,19 +424,18 @@ describe("IntegrationTestCtx.micro", () => {
 
         envSetupMock.setup((x) => x.teardown())
         envSetupMock.setup((x) => x.setup(expectedEnv))
-        serverProviderMock.setup(x => x(expectedEnv)).returns(() => Promise.resolve(serverMock.object))
-        serverMock.setup(x => x.onUrl).returns(x => "someUrl")
+        clientAndServerProviderMock.setup(x => x(expectedEnv)).returns(() => Promise.resolve(clientAndServerMock.object))
 
 
 
         httpMockkServerMocks.forEach((x, index) =>
           x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
         )
-        serverMock.setup((clientandServer) => clientandServer.close()).returns(() => Promise.resolve())
+        clientAndServerMock.setup((clientandServer) => clientandServer.close()).returns(() => Promise.resolve())
         httpMockkServerMocks.forEach((x) => x.setup((x) => x.close()).returns(() => Promise.resolve()))
 
         testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-          serverProviderMock.object,
+          clientAndServerProviderMock.object,
           {
             defaultEnv,
             envSetup: envSetupMock.object,
@@ -466,13 +455,12 @@ describe("IntegrationTestCtx.micro", () => {
 
         envSetupMock.setup((x) => x.teardown())
         envSetupMock.setup((x) => x.setup(defaultEnv))
-        serverProviderMock.setup(x => x(defaultEnv)).returns(() => Promise.resolve(serverMock.object))
-        serverMock.setup(x => x.onUrl).returns(x => "someUrl")
-        serverMock.setup(x => x.close).returns(x => () => Promise.resolve())
+        clientAndServerProviderMock.setup(x => x(defaultEnv)).returns(() => Promise.resolve(clientAndServerMock.object))
+        clientAndServerMock.setup(x => x.close).returns(x => () => Promise.resolve())
 
 
         testCtxFactory = configureIntegrationTestCtxProvider(
-          serverProviderMock.object,
+          clientAndServerProviderMock.object,
           {
             defaultEnv,
             envSetup: envSetupMock.object,
@@ -503,8 +491,7 @@ describe("IntegrationTestCtx.micro", () => {
 
       envSetupMock.setup((x) => x.teardown())
       envSetupMock.setup((x) => x.setup(expectedEnv))
-      serverProviderMock.setup(x => x(expectedEnv)).returns(() => Promise.resolve(serverMock.object))
-      serverMock.setup(x => x.onUrl).returns(x => "someUrl")
+      clientAndServerProviderMock.setup(x => x(expectedEnv)).returns(() => Promise.resolve(clientAndServerMock.object))
 
 
       whenDeltaConfigMock.setup((x) => x.snapshot()).returns(() => Promise.resolve(firstSnapshot))
@@ -518,7 +505,7 @@ describe("IntegrationTestCtx.micro", () => {
 
 
       const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-        serverProviderMock.object,
+        clientAndServerProviderMock.object,
         {
           defaultEnv,
           envSetup: envSetupMock.object,
@@ -556,8 +543,7 @@ describe("IntegrationTestCtx.micro", () => {
 
       envSetupMock.setup((x) => x.teardown())
       envSetupMock.setup((x) => x.setup(expectedEnv))
-      serverProviderMock.setup(x => x(expectedEnv)).returns(() => Promise.resolve(serverMock.object))
-      serverMock.setup(x => x.onUrl).returns(x => "someUrl")
+      clientAndServerProviderMock.setup(x => x(expectedEnv)).returns(() => Promise.resolve(clientAndServerMock.object))
 
 
       httpMockkServerMocks.forEach((x, index) =>
@@ -567,7 +553,7 @@ describe("IntegrationTestCtx.micro", () => {
 
 
       const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
-        serverProviderMock.object,
+        clientAndServerProviderMock.object,
         {
           defaultEnv,
           envSetup: envSetupMock.object,

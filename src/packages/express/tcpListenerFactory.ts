@@ -3,19 +3,15 @@ import { TCPConfig, TcpListener } from "../../tcp/tcp.types"
 import { EnvVars } from "../../integration/IntegrationTestCtx"
 import { closeTcpListenerMaker } from "../../tcp/closeTcpListenerMaker"
 import express, { Router as ExRouter } from "express"
-import {Middleware} from "koa";
 import {logger} from "../../logger/Logger";
+import * as core from "express-serve-static-core";
 
-export type ClientAndServer = { client: RestClient; close: () => Promise<unknown> }
-export type ClientAndServerProvider<ENVKEYS extends string> = (env: EnvVars<ENVKEYS>) => Promise<ClientAndServer>
 
-export const expressTcpListenerFactory = (tcpConfig: TCPConfig, router: ExRouter, name: string) =>
+export const expressTcpListenerFactory = (tcpConfig: TCPConfig, expressApp: core.Express, name: string) =>
   new Promise<TcpListener>((resolve, reject) => {
-    const exServer = express()
-    exServer.use(router)
     const onUrl = `${tcpConfig.protocol}://${tcpConfig.host}:${tcpConfig.port}`
     try {
-      const server = exServer.listen(
+      const server = expressApp.listen(
         {
           port: tcpConfig.port,
           host: tcpConfig.host,

@@ -11,7 +11,6 @@ import {
 } from "./IntegrationTestCtx"
 import { MockHttpServerExpectation } from "./mockHttpServer/MockHttpExpectation"
 import { RestClient } from "typed-rest-client"
-import { TcpListener } from "../tcp/tcp.types"
 
 export type EnvSetup<ENVKEYS extends string> = {
   setup: (env: EnvVars<ENVKEYS>) => Promise<void>
@@ -20,23 +19,27 @@ export type EnvSetup<ENVKEYS extends string> = {
 
 export interface Given {
   teardown(): Promise<Given>
+
   setup(): Promise<Given>
 }
 
-export type ClientAndServer = { client: RestClient; server: TcpListener }
-export type ServerProvider<ENVKEYS extends string> = (env: EnvVars<ENVKEYS>) => Promise<TcpListener>
+export type ClientAndServer<Client extends object = object> = { client: RestClient; close: () => Promise<void> }
+export type ClientAndServerProvider<ENVKEYS extends string, CLIENT extends object = object> = (
+  env: EnvVars<ENVKEYS>,
+) => Promise<ClientAndServer<CLIENT>>
 
 export type EnvConfig<ENVKEYS extends string> = {
-  defaultEnv: EnvVars<ENVKEYS>,
-  envSetup: EnvSetup<ENVKEYS>,
+  defaultEnv: EnvVars<ENVKEYS>
+  envSetup: EnvSetup<ENVKEYS>
 }
 
 export const configureIntegrationTestCtxProvider = <
   ENVKEYS extends string = string,
   MOCKSERVERNAMES extends string = undefined,
   WHENDELTA extends object = {},
+  CLIENT extends object = RestClient,
 >(
-  serverProvider: ServerProvider<ENVKEYS>,
+  clientAndServerProvider: ClientAndServerProvider<ENVKEYS, CLIENT>,
   envConfig: EnvConfig<ENVKEYS> = nullEnvConfig,
   whenDeltaConfig: WhenDeltaConfig<WHENDELTA> = nullWhenDeltaConfig as WhenDeltaConfig<WHENDELTA>,
   mockHttpServers: MockHttpServer<MOCKSERVERNAMES, ENVKEYS>[] = [],
@@ -49,10 +52,7 @@ export const configureIntegrationTestCtxProvider = <
     await envConfig.envSetup.setup(env)
 
     // Only setup once, might want to re-create before each test
-    const clientAndServerPromise: Promise<ClientAndServer> = serverProvider(env).then((server) => ({
-      server: server,
-      client: clientMaker(server.onUrl),
-    }))
+    const clientAndServerPromise: Promise<ClientAndServer<CLIENT>> = clientAndServerProvider(env)
 
     return {
       env: env,
@@ -108,7 +108,7 @@ const beforeAndAfterAllMaker = (
   },
   after: async () => {
     logger.debug("ctx.afterAll started")
-    await clientAndServerPromise.then((clientAndServer) => clientAndServer.server.close())
+    await clientAndServerPromise.then((clientAndServer) => clientAndServer.close())
     await Promise.all([mockHttpServers.map((x) => x.close())])
     logger.debug("ctx.afterAll complete")
   },
@@ -158,23 +158,6 @@ const whenMaker =
     }
   }
 
-const clientMaker = (serverUrl: string) => {
-  const client = new RestClient("Integration test Api", serverUrl, undefined, {
-    socketTimeout: 2000,
-    maxRetries: 3,
-    allowRetries: true,
-  })
-  logger.info("Client created", { serverUrl: serverUrl })
-  return client
-}
-
-const simpleServerProviderMaker =
-  <ENVKEYS extends string>(url: string) =>
-  (env: EnvVars<ENVKEYS>) =>
-    Promise.resolve<TcpListener>({
-      onUrl: url,
-      close: () => Promise.resolve(),
-    })
 
 const nullEnvConfig: EnvConfig<any> = {
   defaultEnv: {},

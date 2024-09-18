@@ -15,7 +15,7 @@ export class ParamStoreEnvSetup<ENVKEYS extends string> implements EnvSetup<ENVK
   ) {
   }
 
-  public async setup(env: EnvVars<ENVKEYS>): Promise<EnvSetup<ENVKEYS>> {
+  public async setup(env: EnvVars<ENVKEYS>): Promise<void> {
     logger.debug("Calling ParamStoreEnvSetup.setup", {env})
     const pstorePutRequests: PutParameterRequest[] = Object.entries(env).map((envVar) =>
       ({
@@ -26,12 +26,11 @@ export class ParamStoreEnvSetup<ENVKEYS extends string> implements EnvSetup<ENVK
       })
     )
     await promises.map(pstorePutRequests, this.setupOne)
-    return this
+
   }
 
-  public async teardown(): Promise<EnvSetup<ENVKEYS>> {
+  public async teardown(): Promise<void> {
     await promises.forEach(this.paramsToTeardown, this.tearDownOne)
-    return this
   }
 
   setupOne = (pstorePutRequest: PutParameterRequest): Promise<void> => {

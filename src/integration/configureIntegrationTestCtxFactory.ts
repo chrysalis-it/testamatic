@@ -14,13 +14,12 @@ import { RestClient } from "typed-rest-client"
 import { TcpListener } from "../tcp/tcp.types"
 
 export type EnvSetup<ENVKEYS extends string> = {
-  setup: (env: EnvVars<ENVKEYS>) => Promise<EnvSetup<ENVKEYS>>
-  teardown: () => Promise<EnvSetup<ENVKEYS>>
+  setup: (env: EnvVars<ENVKEYS>) => Promise<void>
+  teardown: () => Promise<void>
 }
 
 export interface Given {
   teardown(): Promise<Given>
-
   setup(): Promise<Given>
 }
 
@@ -33,13 +32,13 @@ export type EnvConfig<ENVKEYS extends string> = {
 }
 
 export const configureIntegrationTestCtxProvider = <
-  ENVKEYS extends string,
+  ENVKEYS extends string = string,
   MOCKSERVERNAMES extends string = undefined,
   WHENDELTA extends object = {},
 >(
-  envConfig: EnvConfig<ENVKEYS>,
-  whenDeltaConfig: WhenDeltaConfig<WHENDELTA>,
   serverProvider: ServerProvider<ENVKEYS>,
+  envConfig: EnvConfig<ENVKEYS> = nullEnvConfig,
+  whenDeltaConfig: WhenDeltaConfig<WHENDELTA> = nullWhenDeltaConfig as WhenDeltaConfig<WHENDELTA>,
   mockHttpServers: MockHttpServer<MOCKSERVERNAMES, ENVKEYS>[] = [],
   beforeAll: Given[] = [],
   beforeEach: Given[] = [],
@@ -176,3 +175,16 @@ const simpleServerProviderMaker =
       onUrl: url,
       close: () => Promise.resolve(),
     })
+
+const nullEnvConfig: EnvConfig<any> = {
+  defaultEnv: {},
+  envSetup: {
+    setup: (env) => Promise.resolve(undefined),
+    teardown: () => Promise.resolve(undefined),
+  },
+}
+
+const nullWhenDeltaConfig = {
+  snapshot: () => Promise.resolve({}),
+  diff: (first: {}) => Promise.resolve({}),
+}

@@ -27,13 +27,17 @@ export interface Given {
 export type ClientAndServer = { client: RestClient; server: TcpListener }
 export type ServerProvider<ENVKEYS extends string> = (env: EnvVars<ENVKEYS>) => Promise<TcpListener>
 
+export type EnvConfig<ENVKEYS extends string> = {
+  defaultEnv: EnvVars<ENVKEYS>,
+  envSetup: EnvSetup<ENVKEYS>,
+}
+
 export const configureIntegrationTestCtxProvider = <
   ENVKEYS extends string,
   MOCKSERVERNAMES extends string = undefined,
   WHENDELTA extends object = {},
 >(
-  defaultEnv: EnvVars<ENVKEYS>,
-  envSetup: EnvSetup<ENVKEYS>,
+  envConfig: EnvConfig<ENVKEYS>,
   whenDeltaConfig: WhenDeltaConfig<WHENDELTA>,
   serverProvider: ServerProvider<ENVKEYS>,
   mockHttpServers: MockHttpServer<MOCKSERVERNAMES, ENVKEYS>[] = [],
@@ -41,9 +45,9 @@ export const configureIntegrationTestCtxProvider = <
   beforeEach: Given[] = [],
 ): IntegrationTestCtxProvider<ENVKEYS, MOCKSERVERNAMES, WHENDELTA> => {
   return async () => {
-    const env = envMaker(defaultEnv, mockHttpServers)
-    await envSetup.teardown()
-    await envSetup.setup(env)
+    const env = envMaker(envConfig.defaultEnv, mockHttpServers)
+    await envConfig.envSetup.teardown()
+    await envConfig.envSetup.setup(env)
 
     // Only setup once, might want to re-create before each test
     const clientAndServerPromise: Promise<ClientAndServer> = serverProvider(env).then((server) => ({

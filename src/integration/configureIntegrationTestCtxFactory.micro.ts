@@ -13,6 +13,8 @@ import {
 } from "./configureIntegrationTestCtxFactory"
 import { RestClient } from "typed-rest-client"
 import {TcpListener} from "../tcp/tcp.types";
+import {MockHttpServerExpectation} from "./mockHttpServer/MockHttpExpectation";
+import mock = jest.mock;
 
 type SomeEnvKeys = "EnvKey1" | "EnvKey2" | "EnvKey3" | "EnvKey4"
 type SomeEnvVars = { [key in SomeEnvKeys]: string }
@@ -272,6 +274,71 @@ describe("IntegrationTestCtx.micro", () => {
         await ctx.each.after()
       })
     })
+  })
+
+  describe("mock.setup", () => {
+      it.skip("when mockserver exists", async () => {
+        const mockServerName = "HttpMockServer1";
+
+        const expectedEnv = {
+          EnvKey1: "HttpMockEnvKey1Value",
+          EnvKey2: "OriginalEnvKey2Value",
+          EnvKey3: "OriginalEnvKey3Value",
+          EnvKey4: "OriginalEnvKey4Value",
+        };
+
+        envSetupMock.setup((x) => x.teardown())
+        envSetupMock.setup((x) => x.setup(expectedEnv))
+        serverProviderMock.setup(x => x(expectedEnv)).returns(() => Promise.resolve(serverMock.object))
+        serverMock.setup(x => x.onUrl).returns(x => "someUrl")
+        httpMockkServerMocks[0].setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[0])
+
+        testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+          defaultEnv,
+          envSetupMock.object,
+          someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+          serverProviderMock.object,
+          [httpMockkServerMocks[0].object],
+          [],
+          [],
+        )
+        const ctx = await testCtxFactory()
+        mocks.verify()
+
+        const mockHttpServerExpectation = someFixture.someObjectOfType<MockHttpServerExpectation>();
+        httpMockkServerMocks[0].setup(x => x.name).returns(() => mockServerName).timesAtLeast(0)
+        httpMockkServerMocks[0].setup(x => x.expect(mockHttpServerExpectation))
+
+        // // when
+        ctx.httpMock.expect(mockServerName, mockHttpServerExpectation)
+
+      })
+      it("when no mockservers", async () => {
+
+        envSetupMock.setup((x) => x.teardown())
+        envSetupMock.setup((x) => x.setup(defaultEnv))
+        serverProviderMock.setup(x => x(defaultEnv)).returns(() => Promise.resolve(serverMock.object))
+        serverMock.setup(x => x.onUrl).returns(x => "someUrl")
+
+        testCtxFactory = configureIntegrationTestCtxProvider(
+          defaultEnv,
+          envSetupMock.object,
+          someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+          serverProviderMock.object
+        )
+
+        // when
+        const ctx = await testCtxFactory()
+
+        const mockHttpServerExpectation = someFixture.someObjectOfType<MockHttpServerExpectation>();
+
+        try {
+        ctx.httpMock.expect("HttpMockServer1", mockHttpServerExpectation)
+          fail('Should never get here')
+        } catch (e) {
+          assertThat(e.message).is("Can not find mock server using name HttpMockServer1");
+        }
+      })
   })
 
   describe("all", () => {

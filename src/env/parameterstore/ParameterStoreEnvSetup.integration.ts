@@ -12,10 +12,6 @@ const env: EnvVars<EnvKeys> = {
 }
 
 describe("ParameterStoreSetup.integration.ts", () => {
-  const axiosClient = axios.create({
-    validateStatus: (status) => true,
-    timeout: 1000,
-  })
 
   describe("ParameterStoreSetup.integration.ts", () => {
     it("setup and teardown one string var", async () => {

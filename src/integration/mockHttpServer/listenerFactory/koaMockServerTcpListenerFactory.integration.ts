@@ -1,5 +1,5 @@
 import { assertThat, match } from "mismatched"
-import { mockServerkoaTcpListenerFactory } from "./mockServerkoaTcpListenerFactory"
+import { koaMockServerTcpListenerFactory } from "./koaMockServerTcpListenerFactory"
 import { MockConfig, MockHttpServerFailure} from "../MockHttpServer"
 import { RestClient } from "typed-rest-client"
 import { MockHttpServerExpectation } from "../MockHttpExpectation"
@@ -10,7 +10,7 @@ class SomeClass {
   go() {}
 }
 
-describe("koaTcpListenerFactory.integration", () => {
+describe("mockServerkoaTcpListenerFactory.integration", () => {
   let listener: TcpListener
 
   const axiosClient = axios.create({
@@ -37,7 +37,7 @@ describe("koaTcpListenerFactory.integration", () => {
       registerFailure: (failure: MockHttpServerFailure) => failures.push(failure),
       getApplicableExpectation: (matcCtx) => undefined,
     }
-    listener = await mockServerkoaTcpListenerFactory(mockConfig ,tcpConfig )
+    listener = await koaMockServerTcpListenerFactory(mockConfig ,tcpConfig )
 
     const response = await axiosClient.get<undefined>(`${listener.onUrl}/hello`)
 
@@ -85,7 +85,7 @@ describe("koaTcpListenerFactory.integration", () => {
       registerFailure: (failure: MockHttpServerFailure) => failures.push(failure),
       getApplicableExpectation: () => nextExpectation,
     }
-    listener = await mockServerkoaTcpListenerFactory(mockConfig,tcpConfig )
+    listener = await koaMockServerTcpListenerFactory(mockConfig,tcpConfig )
 
 
     const response = await axiosClient.get(`${listener.onUrl}/hello`)
@@ -129,7 +129,7 @@ describe("koaTcpListenerFactory.integration", () => {
       registerFailure: (failure: MockHttpServerFailure) => failures.push(failure),
       getApplicableExpectation: () => nextExpectation,
     }
-    listener = await mockServerkoaTcpListenerFactory(mockConfig, tcpConfig )
+    listener = await koaMockServerTcpListenerFactory(mockConfig, tcpConfig )
 
     const response = await axiosClient.get(`${listener.onUrl}/${expectedPath}`)
 

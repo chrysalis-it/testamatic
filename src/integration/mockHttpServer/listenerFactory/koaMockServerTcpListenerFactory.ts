@@ -8,7 +8,7 @@ import { MockConfig, MockTcpListenerFactory } from "../MockHttpServer"
 import {koaTcpListenerFactory} from "../../../packages/koa/koaTcpListenerFactory";
 import {TCPConfig} from "../../../tcp/tcp.types";
 
-export const mockServerkoaTcpListenerFactory: MockTcpListenerFactory =( mockConfig: MockConfig, tcpConfig: TCPConfig)  =>
+export const koaMockServerTcpListenerFactory: MockTcpListenerFactory =(mockConfig: MockConfig, tcpConfig: TCPConfig)  =>
   koaTcpListenerFactory(tcpConfig, [sslify({ resolver: () => true }), bodyParser(), reqHandlerMaker(mockConfig)], `${mockConfig.mockServerName} mock server`)
 
 // TODO is this the right type Koa.Context

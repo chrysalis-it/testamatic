@@ -6,24 +6,23 @@ import {ClientAndServer, ClientAndServerProvider} from "./configureIntegrationTe
 import {RestClient} from "typed-rest-client";
 import {restClientMaker} from "./restClientMaker";
 
-export type ExpressAppProvider<ENVKEYS extends string> =(env: EnvVars<ENVKEYS>) => core.Express
+export type ExpressAppProvider = () => core.Express
 
 export const expressClientAndServerProviderMaker =
   <ENVKEYS extends string>(
-    appProvider: ExpressAppProvider<ENVKEYS>,
+    appProvider: ExpressAppProvider,
     tcpConfig: TCPConfig = {
       port: 9999,
       host: "localhost",
       protocol: "http",
     },
   ) =>
-  async (env: EnvVars<ENVKEYS>): Promise<ClientAndServer<RestClient>> => {
-    const server = await expressTcpListenerFactory(tcpConfig, appProvider(env), "api")
+  async (): Promise<ClientAndServer<RestClient>> => {
+    const server = await expressTcpListenerFactory(tcpConfig, appProvider(), "api")
     const client = restClientMaker(server.onUrl);
     return {
       client: client,
       close: async () => {
-
         await server.close()
       }
     }

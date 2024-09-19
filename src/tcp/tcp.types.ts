@@ -5,4 +5,6 @@ export type TCPConfig = {
 }
 export type TcpListener = { onUrl: string; close: () => Promise<void> }
 
+export const tcpConfigUrlMaker = (tcpConfig: TCPConfig) => `${tcpConfig.protocol}://${tcpConfig.host}:${tcpConfig.port}`
+
 

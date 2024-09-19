@@ -28,6 +28,7 @@ export const mockHttpServerExpectationMatchesRequest = (
 ) =>
   matchMaker({
     ...expectation.requestMatcher,
+    method: expectation.requestMatcher.method,
     headers: expectation.requestMatcher.headers ?? match.any(),
     body: expectation.requestMatcher.body ?? match.any(),
   }).matches(request)

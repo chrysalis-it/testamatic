@@ -85,10 +85,10 @@ const envMaker = <ENVKEYS extends string, MOCKSERVERNAMES extends string>(
 })
 
 const mockServerExpectionSetter = <MOCKSERVERNAMES extends string, ENVKEYS extends string>(
-  mockHttpServersx: MockHttpServer<MOCKSERVERNAMES, ENVKEYS>[],
+  mockHttpServers: MockHttpServer<MOCKSERVERNAMES, ENVKEYS>[],
 ): MockServerExpecter<MOCKSERVERNAMES, ENVKEYS> => ({
   expect: (name: MOCKSERVERNAMES, expectation: MockHttpServerExpectation) => {
-    const mockServer = mockHttpServersx.find((x) => x.name === name)
+    const mockServer = mockHttpServers.find((x) => x.name === name)
     if (!mockServer) throw new Error(`Can not find mock server using name ${name}`)
     return mockServer.expect(expectation)
   },
@@ -116,9 +116,9 @@ const beforeAndAfterAllMaker = (
 
 const beforeAndAfterEachMaker = (mockHttpServers: MockHttpServer[], beforeEach: Given[]): BeforeAndAfter => ({
   before: async () => {
-    logger.debug("ctx.beforeAll started")
+    logger.debug("ctx.beforeEach started")
     await Promise.all(beforeEach.map((x) => x.teardown().then(x => x.setup())))
-    logger.debug("ctx.beforeAll complete")
+    logger.debug("ctx.beforeEach complete")
   },
   after: async () => {
     logger.debug("ctx.afterEach started")
@@ -144,12 +144,14 @@ const whenMaker =
     try {
       await clientAndServerPromise
       const before: WHENDELTA = await whenDeltaConfig.snapshot()
-      logger.info("Executing When", { env: env, beforeSnapshot: before })
+      logger.info("When started", { env: env, beforeSnapshot: before })
       const response = await isExecuted()
-      return {
+      const rtn = {
         response: response,
         delta: await whenDeltaConfig.diff(before),
-      }
+      };
+      logger.info("When execution complete", rtn)
+      return rtn
     } catch (e) {
       logger.error(`Error in WHEN`, e)
       throw e

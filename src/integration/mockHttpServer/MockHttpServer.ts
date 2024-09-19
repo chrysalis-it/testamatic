@@ -5,7 +5,7 @@ import {
   mockHttpServerExpectationMatchesRequest,
   RequestMatchInfo,
 } from "./MockHttpExpectation"
-import {TCPConfig, TcpListener} from "../../tcp/tcp.types";
+import {TCPConfig, tcpConfigUrlMaker, TcpListener} from "../../tcp/tcp.types"
 
 export type MockTcpListenerFactory = (mockConfig: MockConfig, tcpConfig: TCPConfig) => Promise<TcpListener>
 
@@ -26,14 +26,12 @@ export class MockHttpServer<MOCKSERVERNAMES extends string = any, ENVKEYS extend
   constructor(
     public name: MOCKSERVERNAMES,
     private urlEnvKey: ENVKEYS,
-    host: string = "localhost",
-    private protocol: "http" | "https" = "http",
     private listenerFactory: MockTcpListenerFactory,
+    tcpConfig: Omit<TCPConfig, "port">,
   ) {
     this.tcpCfg = {
+      ...tcpConfig,
       port: MockHttpServer.nextServerPort++,
-      host: host,
-      protocol: protocol,
     }
   }
 
@@ -61,8 +59,9 @@ export class MockHttpServer<MOCKSERVERNAMES extends string = any, ENVKEYS extend
   }
 
   getEnvEntries(): Partial<EnvVars<ENVKEYS>> {
-    if (!this.tcpListener) throw new Error("Url Unknown: Please start listening first")
-    return { [this.urlEnvKey]: this.tcpListener.onUrl } as Partial<EnvVars<ENVKEYS>>
+    // TODO This is kind of duplicated but needed for setting env
+    const url = tcpConfigUrlMaker(this.tcpCfg)
+    return { [this.urlEnvKey]: url } as Partial<EnvVars<ENVKEYS>>
   }
 
   close = (): Promise<void> => {

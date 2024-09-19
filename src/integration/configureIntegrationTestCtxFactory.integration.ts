@@ -102,7 +102,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
       await ctx.each.after()
       await ctx.all.after()
     })
-    describe("mock servers", () => {
+    describe("mock server", () => {
 
       const url = "/"
       const expectedServerResponse = "yes I am alive AND LIFE IS GOOD!"

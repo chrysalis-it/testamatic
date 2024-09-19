@@ -1,5 +1,5 @@
 import { ClientAndServerProvider, configureIntegrationTestCtxProvider } from "./configureIntegrationTestCtxFactory"
-import {assertThat, match} from "mismatched"
+import { assertThat, match } from "mismatched"
 import express, { Router as ExRouter } from "express"
 import { ExpressAppProvider, expressClientAndServerProviderMaker } from "./expressClientAndServerProviderMaker"
 import { RestClient } from "typed-rest-client"
@@ -8,7 +8,7 @@ import * as process from "process"
 import { EnvVars } from "./IntegrationTestCtx"
 import { MockHttpServer } from "./mockHttpServer/MockHttpServer"
 import { koaMockServerTcpListenerFactory } from "./mockHttpServer/listenerFactory/koaMockServerTcpListenerFactory"
-import axios from "axios";
+import axios from "axios"
 
 type SomeEnvKeys = "EnvKeyOne" | "EnvKeyTwo"
 type SomeMockServerNames = "HttpMockServer1" | "HttpMockServer2" | "HttpMockServer3"
@@ -102,92 +102,305 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
       await ctx.each.after()
       await ctx.all.after()
     })
-    it.only("with mock servers", async () => {
+
+    describe("with mock servers", () => {
+
       const url = "/"
       const expectedServerResponse = "yes I am alive AND LIFE IS GOOD!"
 
+      const mockServerName = "HttpMockServer3";
       const mockedUrl = "helloMockServer"
       const expectedMockServerResponse = "Hello I am a mocked server"
 
-      const appProvider: ExpressAppProvider = () => {
-        // get env
-        const env = process.env as EnvVars<SomeEnvKeys>
+      it("with no expectation and no calls", async () => {
 
-        // compose app that calls mocked service
-        const dependencyUrl = env["EnvKeyOne"]
-        console.log(`!!!!!!!!!!!!!!!!1Url from env is ${url}`)
-        // const restClient = new RestClient(url)
+        const simpleAppWithOnedependantCall: ExpressAppProvider = () => {
+          // get env
+          const env = process.env as EnvVars<SomeEnvKeys>
+          // compose app that calls mocked service
+          const dependencyUrl = env["EnvKeyOne"]
 
-        const axiosClient = axios.create({
-          validateStatus: (status) => true,
-          timeout: 1000,
-        })
+          const app = express()
+          const router = ExRouter()
+          router.get(url, async (req, res) => {
+            res.json({serverResponse: expectedServerResponse, mockResponse: undefined})
+          })
+          app.use(router)
+          return app
+        }
 
-        const app = express()
-        const router = ExRouter()
-        router.get(url, async (req, res) => {
-          const response = await axiosClient.get(`${dependencyUrl}/${mockedUrl}`)
-          res.json({serverResponse: expectedServerResponse, mockResponse: expectedMockServerResponse})
-        })
-        app.use(router)
-        return app
-      }
-
-      const testCtx = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
-        expressClientAndServerProviderMaker(appProvider),
-        {
-          defaultEnv: {
-            EnvKeyOne: "EnvValueOne",
-            EnvKeyTwo: "EnvValueTwo",
-          },
-          envSetup: new LocalEnvSetup(),
-        },
-        undefined,
-        [
-          new MockHttpServer<SomeMockServerNames, SomeEnvKeys>(
-            "HttpMockServer3",
-            "EnvKeyOne",
-            koaMockServerTcpListenerFactory,
-            {
-              host: "localhost",
-              protocol: "http",
+        const IntegrationTestCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
+          expressClientAndServerProviderMaker(simpleAppWithOnedependantCall),
+          {
+            defaultEnv: {
+              EnvKeyOne: "EnvValueOne",
+              EnvKeyTwo: "EnvValueTwo",
             },
-          ),
-        ],
-      )
-      const ctx = await testCtx()
+            envSetup: new LocalEnvSetup(),
+          },
+          undefined,
+          [
+            new MockHttpServer<SomeMockServerNames, SomeEnvKeys>(
+              mockServerName,
+              "EnvKeyOne",
+              koaMockServerTcpListenerFactory,
+              {
+                host: "localhost",
+                protocol: "http",
+              },
+            ),
+          ],
+        )
+        const testCtx = await IntegrationTestCtxProvider()
 
-      await ctx.all.before()
-      await ctx.each.before()
+        await testCtx.all.before()
+        await testCtx.each.before()
 
-      ctx.httpMock.expect("HttpMockServer3", {
-        requestMatcher: {
-          url: match.any(),
-          method: "get",
-        },
-        response: {
-          status: 200,
-          statusText: "OK",
-          body: expectedMockServerResponse,
-        },
+        const whenResponse = await testCtx.when(() =>
+          testCtx.api.client().get<{
+            serverResponse: string
+            mockResponse: string
+          }>(url),
+        )
+
+        assertThat(whenResponse.delta).is({})
+        assertThat(whenResponse.response.statusCode).is(200)
+        assertThat(whenResponse.response.result).is({
+          serverResponse: expectedServerResponse,
+          mockResponse: undefined,
+        })
+
+        await testCtx.each.after()
+        await testCtx.all.after()
       })
+      it("with no expectation and unexpected call", async () => {
 
-      const whenResponse = await ctx.when(() =>
-        ctx.api.client().get<{
-          serverResponse: string
-          mockResponse: string
-        }>(url),
-      )
+        const simpleAppWithOnedependantCall: ExpressAppProvider = () => {
+          // get env
+          const env = process.env as EnvVars<SomeEnvKeys>
+          // compose app that calls mocked service
+          const dependencyUrl = env["EnvKeyOne"]
+          const axiosClient = axios.create({
+            validateStatus: (status) => true,
+            timeout: 1000,
+          })
+          const app = express()
+          const router = ExRouter()
+          router.get(url, async (req, res) => {
+            const response = await axiosClient.get(`${dependencyUrl}/${mockedUrl}`)
+            res.json({serverResponse: expectedServerResponse, mockResponse: response.data})
+          })
+          app.use(router)
+          return app
+        }
 
-      assertThat(whenResponse.delta).is({})
-      assertThat(whenResponse.response.statusCode).is(200)
-      assertThat(whenResponse.response.result).is({
-        serverResponse: expectedServerResponse,
-        mockResponse: expectedMockServerResponse,
+        const IntegrationTestCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
+          expressClientAndServerProviderMaker(simpleAppWithOnedependantCall),
+          {
+            defaultEnv: {
+              EnvKeyOne: "EnvValueOne",
+              EnvKeyTwo: "EnvValueTwo",
+            },
+            envSetup: new LocalEnvSetup(),
+          },
+          undefined,
+          [
+            new MockHttpServer<SomeMockServerNames, SomeEnvKeys>(
+              mockServerName,
+              "EnvKeyOne",
+              koaMockServerTcpListenerFactory,
+              {
+                host: "localhost",
+                protocol: "http",
+              },
+            ),
+          ],
+        )
+        const testCtx = await IntegrationTestCtxProvider()
+
+        await testCtx.all.before()
+        await testCtx.each.before()
+
+        try {
+          const whenResponse = await testCtx.when(() =>
+            testCtx.api.client().get<{
+              serverResponse: string
+              mockResponse: string
+            }>(url),
+          )
+          fail('Should never get here')
+        } catch (e) {
+
+          assertThat(JSON.parse(e.message)).is({
+            message: `Verify for MockServer ${mockServerName} failed`,
+            unmet:[],
+            failed: [{
+              reason: "No remaining expectations",
+              request: match.any()
+            }]
+          });
+        } finally {
+          await testCtx.each.after()
+          await testCtx.all.after()
+
+        }
       })
+      it("with expectation that is satisfied", async () => {
 
-      await ctx.each.after()
-      await ctx.all.after()
+        const simpleAppWithOnedependantCall: ExpressAppProvider = () => {
+          // get env
+          const env = process.env as EnvVars<SomeEnvKeys>
+          // compose app that calls mocked service
+          const dependencyUrl = env["EnvKeyOne"]
+          const axiosClient = axios.create({
+            validateStatus: (status) => true,
+            timeout: 1000,
+          })
+          const app = express()
+          const router = ExRouter()
+          router.get(url, async (req, res) => {
+            const response = await axiosClient.get(`${dependencyUrl}/${mockedUrl}`)
+            res.json({serverResponse: expectedServerResponse, mockResponse: response.data})
+          })
+          app.use(router)
+          return app
+        }
+
+        const IntegrationTestCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
+          expressClientAndServerProviderMaker(simpleAppWithOnedependantCall),
+          {
+            defaultEnv: {
+              EnvKeyOne: "EnvValueOne",
+              EnvKeyTwo: "EnvValueTwo",
+            },
+            envSetup: new LocalEnvSetup(),
+          },
+          undefined,
+          [
+            new MockHttpServer<SomeMockServerNames, SomeEnvKeys>(
+              mockServerName,
+              "EnvKeyOne",
+              koaMockServerTcpListenerFactory,
+              {
+                host: "localhost",
+                protocol: "http",
+              },
+            ),
+          ],
+        )
+        const testCtx = await IntegrationTestCtxProvider()
+
+        await testCtx.all.before()
+        await testCtx.each.before()
+
+        testCtx.httpMock.expect(mockServerName, {
+          requestMatcher: {
+            url: match.any(),
+            method: "get",
+          },
+          response: {
+            status: 200,
+            statusText: "OK",
+            body: expectedMockServerResponse,
+          },
+        })
+
+        const whenResponse = await testCtx.when(() =>
+          testCtx.api.client().get<{
+            serverResponse: string
+            mockResponse: string
+          }>(url),
+        )
+
+        assertThat(whenResponse.delta).is({})
+        assertThat(whenResponse.response.statusCode).is(200)
+        assertThat(whenResponse.response.result).is({
+          serverResponse: expectedServerResponse,
+          mockResponse: expectedMockServerResponse,
+        })
+
+        await testCtx.each.after()
+        await testCtx.all.after()
+      })
+      it("with expectation that is not satisfied", async () => {
+
+        const simpleAppWithOnedependantCall: ExpressAppProvider = () => {
+          // get env
+          const env = process.env as EnvVars<SomeEnvKeys>
+          // compose app that calls mocked service
+          const dependencyUrl = env["EnvKeyOne"]
+
+          const app = express()
+          const router = ExRouter()
+          router.get(url, async (req, res) => {
+            res.json({serverResponse: expectedServerResponse, mockResponse: expectedMockServerResponse})
+          })
+          app.use(router)
+          return app
+        }
+
+        const IntegrationTestCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
+          expressClientAndServerProviderMaker(simpleAppWithOnedependantCall),
+          {
+            defaultEnv: {
+              EnvKeyOne: "EnvValueOne",
+              EnvKeyTwo: "EnvValueTwo",
+            },
+            envSetup: new LocalEnvSetup(),
+          },
+          undefined,
+          [
+            new MockHttpServer<SomeMockServerNames, SomeEnvKeys>(
+              mockServerName,
+              "EnvKeyOne",
+              koaMockServerTcpListenerFactory,
+              {
+                host: "localhost",
+                protocol: "http",
+              },
+            ),
+          ],
+        )
+        const testCtx = await IntegrationTestCtxProvider()
+
+        await testCtx.all.before()
+        await testCtx.each.before()
+
+        testCtx.httpMock.expect(mockServerName, {
+          requestMatcher: {
+            url: match.any(),
+            method: "get",
+          },
+          response: {
+            status: 200,
+            statusText: "OK",
+            body: expectedMockServerResponse,
+          },
+        })
+
+        try {
+          const whenResponse = await testCtx.when(() =>
+            testCtx.api.client().get<{
+              serverResponse: string
+              mockResponse: string
+            }>(url),
+          )
+          fail('Should never get here')
+        } catch (e) {
+          assertThat(JSON.parse(e.message)).is({
+            message: `Verify for MockServer ${mockServerName} failed`,
+            unmet: match.array.length(1),
+            failed: []
+          });
+        } finally {
+          await testCtx.each.after()
+          await testCtx.all.after()
+
+        }
+
+      })
     })
+
+
   })
 })

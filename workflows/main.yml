@@ -13,5 +13,8 @@ on:
 
 jobs:
   build:
-    uses: ./.github/workflows/wf-build.yml
-    secrets: inherit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Say Hello to the World
+        run: echo "Hello, World!"

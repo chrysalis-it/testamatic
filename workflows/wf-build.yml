@@ -1,0 +1,64 @@
+﻿name: ~Build
+
+on:
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+
+      - name: NPM install
+        run: |
+          npm ci
+
+      - name: Build
+        run: npm run build
+
+  test-micro:
+    runs-on: ubuntu-latest
+    name: Micro Test
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: NPM install
+        run: |
+          npm ci
+
+      - name: Micro Test
+        run: |
+          npm run test:micro
+
+  test-integration:
+    runs-on: ubuntu-latest
+    name: Integration Test
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: NPM install
+        run: |
+          npm ci
+
+      - name: Integration Test
+        run: |
+          npm run build
+          npm run docker:up
+          npm run docker:localstack:wait
+          npm run docker -- exec -T dev.local npm run test:integration
+          npm run docker:down
+
+ 

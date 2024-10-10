@@ -5,13 +5,17 @@ import { mockHttpServerExpectationMatchesRequest, RequestMatchInfo } from "../Mo
 import { isFunction } from "util"
 import { PrettyPrinter } from "mismatched"
 import { MockConfig, MockTcpListenerFactory } from "../MockHttpServer"
-import {koaTcpListenerFactory} from "../../../packages/koa/koaTcpListenerFactory";
-import {TCPConfig} from "../../../tcp/tcp.types";
+import { koaTcpListenerFactory } from "../../../packages/koa/koaTcpListenerFactory"
+import { TCPConfig } from "../../../tcp/tcp.types"
 
-export const koaMockServerTcpListenerFactory: MockTcpListenerFactory =(mockConfig: MockConfig, tcpConfig: TCPConfig)  =>
-  koaTcpListenerFactory(tcpConfig, [sslify({ resolver: () => true }), bodyParser(), reqHandlerMaker(mockConfig)], `${mockConfig.mockServerName} mock server`)
+export const koaMockServerTcpListenerFactory: MockTcpListenerFactory = (mockConfig: MockConfig, tcpConfig: TCPConfig) =>
+  koaTcpListenerFactory(
+    tcpConfig,
+    [sslify({ resolver: () => true }), bodyParser(), reqHandlerMaker(mockConfig)],
+    `${mockConfig.mockServerName} mock server`,
+  )
 
-// TODO is this the right type Koa.Context
+
 const reqHandlerMaker = (mockConfig: MockConfig) => async (koaCtx: Koa.Context) => {
   const reqInfo: RequestMatchInfo = {
     url: koaCtx.url,
@@ -59,3 +63,4 @@ const reqHandlerMaker = (mockConfig: MockConfig) => async (koaCtx: Koa.Context) 
   const { body, status, statusText, headers } = koaCtx
   console.info(`Mock Server Sending Response`, { status, statusText, headers, body })
 }
+

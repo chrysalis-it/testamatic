@@ -23,7 +23,7 @@ export interface Given {
   setup(): Promise<Given>
 }
 
-export type ClientAndServer<Client extends object = object> = { client: RestClient; close: () => Promise<void> }
+export type ClientAndServer<Client extends object = object> = { client: RestClient, close: () => Promise<void> }
 export type ClientAndServerProvider<ENVKEYS extends string, CLIENT extends object = object> = (
   env: EnvVars<ENVKEYS>,
 ) => Promise<ClientAndServer<CLIENT>>
@@ -58,7 +58,7 @@ export const configureIntegrationTestCtxProvider = <
       env: env,
       all: beforeAndAfterAllMaker(mockHttpServers, beforeAll, clientAndServerPromise),
       each: beforeAndAfterEachMaker(mockHttpServers, beforeEach),
-      httpMock: mockServerExpectionSetter(mockHttpServers),
+      httpMock: mockServersMaker(mockHttpServers),
       api: await apiMaker(clientAndServerPromise),
       when: whenMaker<ENVKEYS, WHENDELTA>(env, mockHttpServers, whenDeltaConfig, clientAndServerPromise),
     }
@@ -84,7 +84,7 @@ const envMaker = <ENVKEYS extends string, MOCKSERVERNAMES extends string>(
   ...Object.assign({}, ...mockHttpServers.map((x) => x.getEnvEntries())),
 })
 
-const mockServerExpectionSetter = <MOCKSERVERNAMES extends string, ENVKEYS extends string>(
+const mockServersMaker = <MOCKSERVERNAMES extends string, ENVKEYS extends string>(
   mockHttpServers: MockHttpServer<MOCKSERVERNAMES, ENVKEYS>[],
 ): MockServerExpecter<MOCKSERVERNAMES, ENVKEYS> => ({
   expect: (name: MOCKSERVERNAMES, expectation: MockHttpServerExpectation) => {

@@ -5,7 +5,8 @@ import {
   mockHttpServerExpectationMatchesRequest,
   RequestMatchInfo,
 } from "./MockHttpExpectation"
-import {TCPConfig, tcpConfigUrlMaker, TcpListener} from "../../tcp/tcp.types"
+import {TCPConfig, TcpListener} from "../../tcp/tcp.types"
+import {tcpConfigUrlMaker} from "../../tcp/tcpConfigUrlMaker";
 
 export type MockTcpListenerFactory = (mockConfig: MockConfig, tcpConfig: TCPConfig) => Promise<TcpListener>
 

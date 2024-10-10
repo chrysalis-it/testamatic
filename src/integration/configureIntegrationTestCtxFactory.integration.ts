@@ -128,7 +128,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
           return app
         }
 
-        const IntegrationTestCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
+        const testCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
           expressClientAndServerProviderMaker(simpleAppWithOnedependantCall),
           {
             defaultEnv: {
@@ -150,7 +150,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
             ),
           ],
         )
-        const testCtx = await IntegrationTestCtxProvider()
+        const testCtx = await testCtxProvider()
 
         await testCtx.all.before()
         await testCtx.each.before()
@@ -193,7 +193,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
           return app
         }
 
-        const IntegrationTestCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
+        const tstCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
           expressClientAndServerProviderMaker(simpleAppWithOnedependantCall),
           {
             defaultEnv: {
@@ -215,7 +215,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
             ),
           ],
         )
-        const testCtx = await IntegrationTestCtxProvider()
+        const testCtx = await tstCtxProvider()
 
         await testCtx.all.before()
         await testCtx.each.before()
@@ -270,7 +270,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
           return app
         }
 
-        const IntegrationTestCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
+        const testCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
           expressClientAndServerProviderMaker(simpleAppWithOnedependantCall),
           {
             defaultEnv: {
@@ -292,7 +292,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
             ),
           ],
         )
-        const testCtx = await IntegrationTestCtxProvider()
+        const testCtx = await testCtxProvider()
 
         await testCtx.all.before()
         await testCtx.each.before()

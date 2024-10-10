@@ -1,6 +1,7 @@
 import Koa from "koa"
-import {TCPConfig, tcpConfigUrlMaker, TcpListener} from "../../tcp/tcp.types"
+import {TCPConfig, TcpListener} from "../../tcp/tcp.types"
 import { closeTcpListenerMaker } from "../../tcp/closeTcpListenerMaker"
+import {tcpConfigUrlMaker} from "../../tcp/tcpConfigUrlMaker";
 
 
 

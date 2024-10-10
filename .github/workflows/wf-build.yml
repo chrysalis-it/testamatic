@@ -12,22 +12,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
     name: Build
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-
       - name: NPM install
         run: |
           npm ci
-
-      c
+          npm run compile
 
   test-micro:
     runs-on: ubuntu-latest
     name: Micro Test
-    needs: build
+    needs: Build
     steps:
       - name: Checkout
         uses: actions/checkout@v4

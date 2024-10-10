@@ -15,7 +15,7 @@
     "test:integration": "jest --selectProjects integration  --forceExit --detectOpenHandles",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "docker": "docker-compose -f .devcontainer/docker-compose.yml",
+    "docker": "docker compose -f .devcontainer/docker-compose.yml",
     "docker:up": "npm run docker -- up -d",
     "docker:down": "npm run docker -- down -v",
     "docker:logs": "npm run docker -- logs -f",

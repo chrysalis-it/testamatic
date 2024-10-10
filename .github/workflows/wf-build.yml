@@ -22,8 +22,7 @@ jobs:
         run: |
           npm ci
 
-      - name: Build
-        run: npm run build
+      c
 
   test-micro:
     runs-on: ubuntu-latest
@@ -44,7 +43,7 @@ jobs:
   test-integration:
     runs-on: ubuntu-latest
     name: Integration Test
-    needs: build
+    needs: test-micro
     steps:
       - name: Checkout
         uses: actions/checkout@v4

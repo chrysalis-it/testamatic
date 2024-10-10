@@ -6,14 +6,10 @@ concurrency:
 
 on:
   push:
-    branches:
-      - main
-      - develop
   pull_request:
   workflow_call:
 
 jobs:
   build:
-    if: ${{ github.actor != 'dependabot[bot]' }}
     uses: ./.github/workflows/wf-build.yml
     secrets: inherit

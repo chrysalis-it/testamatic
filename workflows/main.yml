@@ -6,10 +6,9 @@ name: Build and deploy
 
 on:
   push:
-    branches:
-      - main
-#  pull_request:
-#  workflow_call:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:

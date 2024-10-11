@@ -1,6 +1,6 @@
 # Testamatic
 
-Configurabe, light weight, integration testing context that can be used to support writing integrations with the test
+Configurabe, light weight, integration testing context that can be used to support writing integration tests with the test
 runner of your choice.
 
 ## Configuration

@@ -4,7 +4,7 @@ import { PrettyPrinter } from "mismatched"
 import { MockConfig, MockTcpListenerFactory } from "../MockHttpServer"
 import { TCPConfig } from "../../../tcp/tcp.types"
 import express, { Handler } from "express"
-import { expressTcpListenerFactory } from "../../../packages/express/tcpListenerFactory"
+import {tcpListenerFactory} from "./tcpListenerFactory";
 
 export const expressMockServerTcpListenerFactory: MockTcpListenerFactory = (
   mockConfig: MockConfig,
@@ -16,7 +16,7 @@ export const expressMockServerTcpListenerFactory: MockTcpListenerFactory = (
   // TODO
   // sslify({ resolver: () => true }), bodyParser(),
 
-  return expressTcpListenerFactory(tcpConfig, expressApp, `${mockConfig.mockServerName} mock server`)
+  return tcpListenerFactory(tcpConfig, expressApp, `${mockConfig.mockServerName} mock server`)
 }
 
 const expressHandlerMaker =

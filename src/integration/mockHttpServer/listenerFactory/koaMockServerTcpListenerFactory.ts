@@ -5,16 +5,25 @@ import { mockHttpServerExpectationMatchesRequest, RequestMatchInfo } from "../Mo
 import { isFunction } from "util"
 import { PrettyPrinter } from "mismatched"
 import { MockConfig, MockTcpListenerFactory } from "../MockHttpServer"
-import { koaTcpListenerFactory } from "../../../packages/koa/koaTcpListenerFactory"
+import {ServerStarter, tcpListenerFactory} from "./tcpListenerFactory"
 import { TCPConfig } from "../../../tcp/tcp.types"
 
+
+
 export const koaMockServerTcpListenerFactory: MockTcpListenerFactory = (mockConfig: MockConfig, tcpConfig: TCPConfig) =>
-  koaTcpListenerFactory(
+  tcpListenerFactory(
     tcpConfig,
-    [sslify({ resolver: () => true }), bodyParser(), reqHandlerMaker(mockConfig)],
+    koaServerStarterMaker(mockConfig),
     `${mockConfig.mockServerName} mock server`,
   )
 
+
+const koaServerStarterMaker  = (mockConfig: MockConfig): ServerStarter => {
+  const koa = new Koa()
+  const middlewares = [sslify({ resolver: () => true }), bodyParser(), reqHandlerMaker(mockConfig)]
+  middlewares.forEach((middleWare) => koa.use(middleWare))
+  return koa
+}
 
 const reqHandlerMaker = (mockConfig: MockConfig) => async (koaCtx: Koa.Context) => {
   const reqInfo: RequestMatchInfo = {

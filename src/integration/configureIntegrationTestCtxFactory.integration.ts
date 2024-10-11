@@ -1,7 +1,7 @@
 import { ClientAndServerProvider, configureIntegrationTestCtxProvider } from "./configureIntegrationTestCtxFactory"
 import { assertThat, match } from "mismatched"
 import express, { Router as ExRouter } from "express"
-import { ExpressAppProvider, expressClientAndServerProviderMaker } from "./expressClientAndServerProviderMaker"
+import { expressClientAndServerProviderMaker } from "./expressClientAndServerProviderMaker"
 import { RestClient } from "typed-rest-client"
 import { LocalEnvSetup } from "../env/local/LocalEnvSetup"
 import * as process from "process"
@@ -9,16 +9,23 @@ import { EnvVars } from "./IntegrationTestCtx"
 import { MockHttpServer } from "./mockHttpServer/MockHttpServer"
 import { koaMockServerTcpListenerFactory } from "./mockHttpServer/listenerFactory/koaMockServerTcpListenerFactory"
 import axios from "axios"
+import {ServerStarter} from "./mockHttpServer/listenerFactory/tcpListenerFactory";
+import {logger} from "../logger/Logger";
 
 type SomeEnvKeys = "EnvKeyOne" | "EnvKeyTwo"
 type SomeMockServerNames = "HttpMockServer1" | "HttpMockServer2" | "HttpMockServer3"
-const pstorePath = "some/pstore/path"
 
 describe("configureIntegrationTestCtxFactory.integration", () => {
+
+  const axiosClient = axios.create({
+    validateStatus: (status) => true,
+    timeout: 1000,
+  })
+
   describe("test runs with", () => {
     const url = "/"
     const expectedResponse = "yes I am alive AND LIFE IS GOOD!"
-    const simpleAppProvider: ExpressAppProvider = () => {
+    const simpleAppProvider = (): ServerStarter => {
       const app = express()
       const router = ExRouter()
       router.get(url, (req, res) => {
@@ -107,13 +114,13 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
       const url = "/"
       const expectedServerResponse = "yes I am alive AND LIFE IS GOOD!"
 
-      const mockServerName = "HttpMockServer3";
+      const mockServerName = "HttpMockServer1";
       const mockedUrl = "helloMockServer"
       const expectedMockServerResponse = "Hello I am a mocked server"
 
       it("with no expectation and no calls", async () => {
 
-        const simpleAppWithOnedependantCall: ExpressAppProvider = () => {
+        const simpleAppWithOnedependantCallMaker = (): ServerStarter => {
           // get env
           const env = process.env as EnvVars<SomeEnvKeys>
           // compose app that calls mocked service
@@ -129,7 +136,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
         }
 
         const testCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
-          expressClientAndServerProviderMaker(simpleAppWithOnedependantCall),
+          expressClientAndServerProviderMaker(simpleAppWithOnedependantCallMaker),
           {
             defaultEnv: {
               EnvKeyOne: "EnvValueOne",
@@ -174,27 +181,31 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
       })
       it("with expectation that is satisfied", async () => {
 
-        const simpleAppWithOnedependantCall: ExpressAppProvider = () => {
+        const simpleAppWithOnedependantCallMaker = (): ServerStarter => {
+
+          logger.info("Calling simpleAppWithOnedependantCallMaker")
           // get env
           const env = process.env as EnvVars<SomeEnvKeys>
           // compose app that calls mocked service
           const dependencyUrl = env["EnvKeyOne"]
-          const axiosClient = axios.create({
-            validateStatus: (status) => true,
-            timeout: 1000,
-          })
+
           const app = express()
           const router = ExRouter()
           router.get(url, async (req, res) => {
-            const response = await axiosClient.get(`${dependencyUrl}/${mockedUrl}`)
+            logger.info("Api call recd", {url})
+            const dependentUrl = `${dependencyUrl}/${mockedUrl}`;
+            logger.info("Making dependent call", {dependentUrl})
+            const response = await axiosClient.get(dependentUrl)
+            logger.info("Dependent call made", {dependentUrl, response: response.data})
             res.json({serverResponse: expectedServerResponse, mockResponse: response.data})
+            logger.info("Api call complete", {url})
           })
           app.use(router)
           return app
         }
 
-        const tstCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
-          expressClientAndServerProviderMaker(simpleAppWithOnedependantCall),
+        const testCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
+          expressClientAndServerProviderMaker(simpleAppWithOnedependantCallMaker),
           {
             defaultEnv: {
               EnvKeyOne: "EnvValueOne",
@@ -215,7 +226,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
             ),
           ],
         )
-        const testCtx = await tstCtxProvider()
+        const testCtx = await testCtxProvider()
 
         await testCtx.all.before()
         await testCtx.each.before()
@@ -251,7 +262,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
       })
       it("with no expectation and unexpected call", async () => {
 
-        const simpleAppWithOnedependantCall: ExpressAppProvider = () => {
+        const simpleAppWithOnedependantCallMaker  = (): ServerStarter => {
           // get env
           const env = process.env as EnvVars<SomeEnvKeys>
           // compose app that calls mocked service
@@ -271,7 +282,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
         }
 
         const testCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
-          expressClientAndServerProviderMaker(simpleAppWithOnedependantCall),
+          expressClientAndServerProviderMaker(simpleAppWithOnedependantCallMaker),
           {
             defaultEnv: {
               EnvKeyOne: "EnvValueOne",
@@ -323,7 +334,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
       })
       it("with expectation that is not satisfied", async () => {
 
-        const simpleAppWithOnedependantCall: ExpressAppProvider = () => {
+        const simpleAppWithOnedependantCallMaker = ():ServerStarter => {
           // get env
           const env = process.env as EnvVars<SomeEnvKeys>
           // compose app that calls mocked service
@@ -339,7 +350,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
         }
 
         const IntegrationTestCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
-          expressClientAndServerProviderMaker(simpleAppWithOnedependantCall),
+          expressClientAndServerProviderMaker(simpleAppWithOnedependantCallMaker),
           {
             defaultEnv: {
               EnvKeyOne: "EnvValueOne",

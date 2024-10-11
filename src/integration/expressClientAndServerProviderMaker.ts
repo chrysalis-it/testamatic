@@ -1,16 +1,12 @@
 import { TCPConfig } from "../tcp/tcp.types"
-import { EnvVars } from "./IntegrationTestCtx"
-import { expressTcpListenerFactory } from "../packages/express/tcpListenerFactory"
-import * as core from "express-serve-static-core"
-import {ClientAndServer, ClientAndServerProvider} from "./configureIntegrationTestCtxFactory";
-import {RestClient} from "typed-rest-client";
-import {restClientMaker} from "./restClientMaker";
-
-export type ExpressAppProvider = () => core.Express
+import { ClientAndServer } from "./configureIntegrationTestCtxFactory"
+import { RestClient } from "typed-rest-client"
+import { restClientMaker } from "./restClientMaker"
+import { ServerStarter, tcpListenerFactory } from "./mockHttpServer/listenerFactory/tcpListenerFactory"
 
 export const expressClientAndServerProviderMaker =
   <ENVKEYS extends string>(
-    appProvider: ExpressAppProvider,
+    serverStarterProvider: () => ServerStarter,
     tcpConfig: TCPConfig = {
       port: 9999,
       host: "localhost",
@@ -18,12 +14,10 @@ export const expressClientAndServerProviderMaker =
     },
   ) =>
   async (): Promise<ClientAndServer<RestClient>> => {
-    const server = await expressTcpListenerFactory(tcpConfig, appProvider(), "api")
-    const client = restClientMaker(server.onUrl);
+    const server = await tcpListenerFactory(tcpConfig, serverStarterProvider(), "api")
+    const client = restClientMaker(server.onUrl)
     return {
       client: client,
-      close: async () => {
-        await server.close()
-      }
+      close: server.close,
     }
   }

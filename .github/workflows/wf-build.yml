@@ -15,7 +15,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: NPM install
+      - name: build
         run: |
           npm ci
           npm run all:compile
@@ -28,13 +28,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: NPM install
+      - name: build
         run: |
           npm ci
+          npm run all:compile
 
       - name: Micro Test
-        run: |
-          npm run test:micro
+        run: npm run test:micro
 
   test-integration:
     runs-on: ubuntu-latest
@@ -44,14 +44,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: NPM install
+      - name: build
         run: |
           npm ci
+          npm run all:compile
 
       - name: Integration Test
         run: |
           npm run docker:up
-          npm run all:compile
           npm run docker:localstack:wait
           npm run docker -- exec -T dev npm run test:integration
           npm run docker:down

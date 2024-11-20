@@ -1,0 +1,28 @@
+{
+  "name": "@chrysalis/integrationtesting",
+  "version": "1.0.0",
+  "description": "Integration tests for MonoRepo",
+  "main": "dist/index.js",
+  "type": "commonjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "clean": "rm -rf ./dist",
+    "compile": "tsc -b .",
+    "prepublish": "npm run compile"
+
+  },
+
+
+  "dependencies": {
+    "@chrysalis/somefixture": "^1.0.0",
+    "@chrysalis/testamatic": "^1.0.0"
+  },
+
+  "peerDependencies": {
+
+  }
+
+}

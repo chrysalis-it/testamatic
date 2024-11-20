@@ -1,0 +1,40 @@
+{
+  "name": "@chrysalis/testamatic",
+  "version": "1.0.0",
+  "description": "Configurable, light weight Integration test automation",
+  "main": "dist/index.js",
+  "type": "commonjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "clean": "rm -rf ./dist",
+    "compile": "tsc -b .",
+    "prepublish": "npm run compile"
+
+  },
+  "devDependencies": {
+
+    "@types/express": "^4.0.0",
+    "@types/koa": "^2.00.0",
+    "@types/koa-bodyparser": "^4.0.0",
+    "@types/koa-router": "^7.0.0",
+    "@types/koa-sslify": "~4.0.3",
+    "@chrysalis/somefixture": "^1.0.0",
+    "typed-rest-client": "^1.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.0.0",
+    "axios-retry": "^3.0.0",
+    "express": "^4.0.0",
+    "koa": "^2.0.0",
+    "koa-bodyparser": "^4.4.1",
+    "@koa/router": "^13.0.0",
+    "koa-sslify": "^5.0.0",
+    "promises-arrow": "^1.0.0"
+  },
+  "peerDependencies": {
+
+  }
+}

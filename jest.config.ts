@@ -3,21 +3,20 @@ import type { Config } from "jest"
 const config: Config = {
   testTimeout: 15 * 1000,
   testEnvironment: "node",
-  roots: ["./src"],
   verbose: true,
-  // reporters: [ "default", "jest-junit" ],
+  reporters: ["default", ["summary", { summaryThreshold: 1 }]],
   projects: [
     {
       displayName: "micro",
-      testMatch: ["<rootDir>/src/**/*.micro.ts"],
       preset: "ts-jest",
-      // setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
+      testMatch: ["<rootDir>/packages/**/src/**/*.micro.ts"],
+      transform: { "^.+\\.tsx?$": ["ts-jest", { tsconfig: "tsconfig-base.json" }] },
     },
     {
       displayName: "integration",
-      testMatch: ["<rootDir>/src/**/*.integration.ts"],
       preset: "ts-jest",
-      //setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
+      testMatch: ["<rootDir>/packages/**/src/**/*.integration.ts"],
+      transform: { "^.+\\.tsx?$": ["ts-jest", { tsconfig: "tsconfig-base.json" }] },
       slowTestThreshold: 20000,
     },
   ],

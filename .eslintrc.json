@@ -15,6 +15,20 @@
   "rules": {
     "no-empty-function": "off",
     "@typescript-eslint/no-empty-function": "off",
+    "@typescript-eslint/no-empty-interface": "warn",
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": ["**/dist/"],
+            "caseSensitive": false,
+            "message": "DO NOT import from private package folder '/dist'."
+          }
+        ]
+      }
+    ],
+    "@typescript-eslint/no-empty-function": "off",
     "@typescript-eslint/no-empty-interface": "warn"
   },
   "ignorePatterns": ["dist", "terraform", ".devcontainer", ".github", ".vscode", "bundle", "docs", "node_modules"

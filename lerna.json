@@ -1,0 +1,13 @@
+{
+  "version": "independent",
+  "npmClient": "npm",
+  "command": {
+    "publish": {
+      "ignoreChanges": ["**.md"],
+      "message": "chore(release): Publish",
+      "registry": "https://npm.pkg.github.com/"
+    }
+  },
+  "packages": ["packages/*"],
+  "$schema": "node_modules/lerna/schemas/lerna-schema.json"
+}

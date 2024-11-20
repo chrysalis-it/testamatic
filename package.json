@@ -1,20 +1,37 @@
 {
   "name": "testamatic",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Configurable, light weight Integration test automation",
   "repository": {
     "type": "git",
-    "url": "https://github.com/getpaulj/testamatic.git"
+    "url": "https://github.com/getpaulj/testamatic"
   },
   "author": "Paul Jacobs",
+  "keywords": [
+    "api", "test", "integration"
+  ],
+  "license": "Apache 2.0",
+  "homepage": "https://github.com/getpaulj/testamatic/readme.md",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "clean": "rm -rf ./dist",
-    "compile": "tsc -p .",
-    "compile:clean_compile": "npm run clean && npm run compile",
-    "test:micro": "jest --selectProjects micro --forceExit --detectOpenHandles",
-    "test:integration": "jest --selectProjects integration  --forceExit --detectOpenHandles",
+    "all:clean": "lerna exec 'npm run clean && rm -rf ./node_modules' && rm -rf ./node_modules/@chrysalis",
+    "all:compile": "lerna run compile",
+    "all:cleancompile": "npm run all:clean && npm i &&  npm run all:compile",
+    "all:publish": "lerna publish from-package --yes",
+
+    "version:ci": "lerna version patch --yes --no-push",
+    "show-version": "git log --tags --simplify-by-decoration --pretty='format:%ai %d'",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "test:micro": "jest --selectProjects micro --forceExit --detectOpenHandles",
+    "test:integration": "jest --selectProjects integration  --forceExit --detectOpenHandles",
     "docker": "docker compose -f .devcontainer/docker-compose.yml",
     "docker:up": "npm run docker -- up -d",
     "docker:down": "npm run docker -- down -v",
@@ -24,23 +41,13 @@
     "docker:localstack:wait": "npm run docker -- exec -T dev bash -c \"source ./.devcontainer/wait-for-it.sh && docker_wait_for_service http://localstack.local:4566 40\""
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.0.0",
-    "@types/cors": "^2.0.0",
-    "@types/express": "^4.0.0",
     "@types/jest": "^29.0.0",
-    "@types/koa": "^2.00.0",
-    "@types/koa-bodyparser": "^4.0.0",
-    "@types/koa-router": "^7.0.0",
-    "@types/koa-sslify": "~4.0.3",
-    "@types/node-forge": "^1.0.0",
-    "@types/uuid": "^8.0.0",
     "@typescript-eslint/eslint-plugin": "^5.0.6",
     "@typescript-eslint/parser": "^5.0.0",
-    "axios": "^1.0.0",
     "eslint-config-prettier": "^8.0.0",
     "eslint-plugin-prettier": "^4.0.0",
     "jest": "^29.0.0",
-    "jose": "^4.0.0",
+    "lerna": "^8.0.0",
     "mismatched": "^3.3.5",
     "npm-update": "^3.0.0",
     "prettier": "^3.3.2",
@@ -48,20 +55,9 @@
     "ts-jest": "^29.0.0",
     "ts-loader": "^9.0.0",
     "ts-node": "^10.0.0",
-    "typed-rest-client": "^1.0.0",
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "aws-lambda": "^1.0.0",
-    "continuation-local-storage": "^3.0.0",
-    "express": "^4.0.0",
-    "koa": "^2.0.0",
-    "koa-bodyparser": "^4.4.1",
-    "@koa/router": "^13.0.0",
-    "koa-sslify": "^5.0.0",
-    "node-forge": "^1.0.0",
-    "pino": "^8.0.0",
-    "promises-arrow": "^1.0.0",
-    "uuid": "^8.0.0"
+    "pino": "^8.0.0"
   }
 }

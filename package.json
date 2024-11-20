@@ -8,7 +8,9 @@
   },
   "author": "Paul Jacobs",
   "keywords": [
-    "api", "test", "integration"
+    "api",
+    "test",
+    "integration"
   ],
   "license": "Apache 2.0",
   "homepage": "https://github.com/getpaulj/testamatic/readme.md",
@@ -25,7 +27,6 @@
     "all:compile": "lerna run compile",
     "all:cleancompile": "npm run all:clean && npm i &&  npm run all:compile",
     "all:publish": "lerna publish from-package --yes",
-
     "version:ci": "lerna version patch --yes --no-push",
     "show-version": "git log --tags --simplify-by-decoration --pretty='format:%ai %d'",
     "lint": "eslint .",
@@ -49,7 +50,7 @@
     "jest": "^29.0.0",
     "lerna": "^8.0.0",
     "mismatched": "^3.3.5",
-    "npm-update": "^3.0.0",
+    "npm-update": "^1.0.8",
     "prettier": "^3.3.2",
     "thespian": "^3.3.5",
     "ts-jest": "^29.0.0",

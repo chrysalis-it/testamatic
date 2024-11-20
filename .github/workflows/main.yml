@@ -12,6 +12,6 @@ on:
   workflow_call:
 
 jobs:
-  build:
+  ci:
     uses: ./.github/workflows/wf-build.yml
     secrets: inherit

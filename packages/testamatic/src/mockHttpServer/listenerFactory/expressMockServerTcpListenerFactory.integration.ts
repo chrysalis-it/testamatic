@@ -37,13 +37,8 @@ describe("expressMockServerTcpListenerFactory.integration.ts", () => {
       registerFailure: (failure: MockHttpServerFailure) => failures.push(failure),
       getApplicableExpectation: (matcCtx) => undefined,
     }
-    console.log(`Got here expressMockServerTcpListenerFactory.integration.ts:41 }`);
     listener = await expressMockServerTcpListenerFactory(mockConfig ,tcpConfig )
-    console.log(`Got here expressMockServerTcpListenerFactory.integration.ts:43 }`);
-
-
     const response = await axiosClient.get<undefined>(`${listener.onUrl}/hello`)
-    console.log(`Got here expressMockServerTcpListenerFactory.integration.ts:45 }`);
 
     // assert response
     assertThat(response.status).is(404)

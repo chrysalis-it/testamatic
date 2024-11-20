@@ -14,7 +14,6 @@ export const tcpListenerFactory = (tcpConfig: TCPConfig, serverStarter: ServerSt
     const onUrl = tcpConfigUrlMaker(tcpConfig)
     console.log(`🚀 ${name} is starting on ${onUrl}`)
     try {
-      console.log(`!!!!!!!!!!!!!!!!!!!!!!!!!Got here tcpListenerFactory.ts:17`);
       const server = serverStarter.listen(
         {
           port: tcpConfig.port,
@@ -26,10 +25,7 @@ export const tcpListenerFactory = (tcpConfig: TCPConfig, serverStarter: ServerSt
           resolve({ onUrl, close: closeTcpListenerMaker(name, onUrl, server) })
         },
       )
-      console.log(`!!!!!!!!!!!!!!!!!!!!!Got here tcpListenerFactory.ts:28`);
-
     } catch (err) {
-      console.log(`!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!Got here tcpListenerFactory.ts:27  and =>${PrettyPrinter.make().render(err)}`);
       reject(err)
     }
   })

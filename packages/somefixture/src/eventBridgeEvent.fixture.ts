@@ -1,5 +1,5 @@
 import { EventBridgeEvent } from "aws-lambda"
-import { someFixture } from "./someFixture"
+import { someFixture } from "./SomeFixture"
 
 export function createEventBridgeEvent<T extends string, E>(detailType: T, data: E): EventBridgeEvent<T, E> {
   return {

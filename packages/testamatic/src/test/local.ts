@@ -2,7 +2,7 @@ import { DynamoDB, SSM } from "aws-sdk"
 import { DocumentClient } from "aws-sdk/clients/dynamodb"
 
 const localStackConfig = {
-  endpoint: "http://localstack.local:4566",
+  endpoint: "http://localstack:4566",
   region: "ap-southeast-2",
   credentials: { accessKeyId: "wegeewg", secretAccessKey: "dwqdqdwq" },
   maxRetries: 3,

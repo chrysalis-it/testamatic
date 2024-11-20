@@ -18,7 +18,7 @@ jobs:
       - name: NPM install
         run: |
           npm ci
-          npm run compile
+          npm run all:compile
 
   test-micro:
     runs-on: ubuntu-latest
@@ -50,8 +50,8 @@ jobs:
 
       - name: Integration Test
         run: |
-          npm run all:compile
           npm run docker:up
+          npm run all:compile
           npm run docker:localstack:wait
           npm run docker -- exec -T dev npm run test:integration
           npm run docker:down

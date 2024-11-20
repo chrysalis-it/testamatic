@@ -39,7 +39,7 @@
     "docker:logs": "npm run docker -- logs -f",
     "docker:bounce": "npm run docker:down npm run docker:up docker:dev:connect",
     "docker:dev:connect": "npm run docker:up && npm run docker -- exec  dev bash",
-    "docker:localstack:wait": "npm run docker -- exec -T dev bash -c \"source ./.devcontainer/wait-for-it.sh && docker_wait_for_service http://localstack.local:4566 40\""
+    "docker:localstack:wait": "npm run docker -- exec -T dev bash -c \"source ./.devcontainer/wait-for-it.sh && docker_wait_for_service http://localstack:4566 40\""
   },
   "devDependencies": {
     "@types/jest": "^29.0.0",

@@ -27,12 +27,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: build
         run: |
           npm ci
           npm run all:compile
-
       - name: Micro Test
         run: npm run test:micro
 
@@ -43,12 +41,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: build
         run: |
           npm ci
           npm run all:compile
-
       - name: Integration Test
         run: |
           npm run docker:up

@@ -178,7 +178,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
         await testCtx.all.after()
       })
       it("with expectation that is satisfied", async () => {
-        const simpleAppWithOnedependantCallMaker = (): ServerStarter => {
+        const simpleAppWithOneDependantCallMaker = (): ServerStarter => {
           logger.info("Calling simpleAppWithOnedependantCallMaker")
           // get env
           const env = process.env as EnvVars<SomeEnvKeys>
@@ -188,20 +188,16 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
           const app = express()
           const router = ExRouter()
           router.get(url, async (req, res) => {
-            logger.info("Api call recd", { url })
             const dependentUrl = `${dependencyUrl}/${mockedUrl}`
-            logger.info("Making dependent call", { dependentUrl })
             const response = await axiosClient.get(dependentUrl)
-            logger.info("Dependent call made", { dependentUrl, response: response.data })
             res.json({ serverResponse: expectedServerResponse, mockResponse: response.data })
-            logger.info("Api call complete", { url })
           })
           app.use(router)
           return app
         }
 
         const testCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
-          expressClientAndServerProviderMaker(simpleAppWithOnedependantCallMaker),
+          expressClientAndServerProviderMaker(simpleAppWithOneDependantCallMaker),
           {
             defaultEnv: {
               EnvKeyOne: "EnvValueOne",

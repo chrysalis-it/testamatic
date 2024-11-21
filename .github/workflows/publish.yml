@@ -1,0 +1,17 @@
+name: Build and deploy
+
+concurrency:
+  group: build-deploy-${{ github.ref_name }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch
+
+jobs:
+  ci:
+    uses: ./.github/workflows/wf-ci.yml
+    secrets: inherit
+
+  publish:
+    uses: ./.github/workflows/wf-cd.yml
+    secrets: inherit

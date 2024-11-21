@@ -1,0 +1,9 @@
+ .*
+*.micro.*
+*.integration.*
+jest.config.ts
+lerna*.*
+**package.json
+package.json
+**README.md
+*tsconfig*.json

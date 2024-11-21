@@ -15,7 +15,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     name: Publish
-    needs: test-integration
+    needs: ci
     permissions:
       contents: write
       packages: write

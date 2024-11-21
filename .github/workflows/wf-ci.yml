@@ -6,15 +6,17 @@ on:
 
 permissions:
   contents: read
-#  packages: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     name: Build
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+#      - name: lint
+#        run: npm run lint
       - name: build
         run: |
           npm ci

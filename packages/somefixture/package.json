@@ -1,5 +1,5 @@
 {
-  "name": "@chrysalis/somefixture",
+  "name": "@chrysalis-it/somefixture",
   "version": "1.0.4",
   "description": "Fixture For introducing caos into automated tests",
   "main": "dist/index.js",

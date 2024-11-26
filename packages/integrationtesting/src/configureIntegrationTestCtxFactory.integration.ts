@@ -13,8 +13,8 @@ import {
   koaMockServerTcpListenerFactory,
   LocalEnvSetup,
   MockHttpServer, ServerStarter,
-} from "@chrysalis/testamatic"
-import {createAxiosInstance} from "@chrysalis/testamatic/dist/axios/axiosInstanceMaker";
+} from "@chrysalis-it/testamatic"
+import {createAxiosInstance} from "@chrysalis-it/testamatic/dist/axios/axiosInstanceMaker";
 
 type SomeEnvKeys = "EnvKeyOne" | "EnvKeyTwo"
 type SomeMockServerNames = "HttpMockServer1" | "HttpMockServer2" | "HttpMockServer3"

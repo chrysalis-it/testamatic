@@ -26,7 +26,7 @@
     "all:clean": "lerna exec 'npm run clean && rm -rf ./node_modules' && rm -rf ./node_modules/@chrysalis",
     "all:compile": "lerna run compile",
     "all:cleancompile": "npm run all:clean && npm i &&  npm run all:compile",
-    "all:publish": "lerna publish from-package --yes",
+    "all:publish": "lerna publish from-package --yes --loglevel verbose",
     "all:version": "lerna version patch --yes --no-push",
     "show-version": "git log --tags --simplify-by-decoration --pretty='format:%ai %d'",
     "lint": "eslint .",

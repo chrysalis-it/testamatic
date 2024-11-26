@@ -15,7 +15,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     name: Publish
-    needs: ci
+#    needs: ci
     permissions:
       contents: write
       packages: write
@@ -61,9 +61,9 @@ jobs:
         run: |
           set -e
           git status
-          git push --follow-tags --no-verify
           npm ci
           npm run all:compile
           npm run all:publish
+          git push --follow-tags --no-verify
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,6 +1,6 @@
 {
   "name": "@chrysalis/integrationtesting",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Integration tests for MonoRepo",
   "main": "dist/index.js",
   "type": "commonjs",
@@ -13,7 +13,7 @@
     "compile": "tsc -b ."
   },
   "dependencies": {
-    "@chrysalis/somefixture": "^1.0.3",
-    "@chrysalis/testamatic": "^1.0.3"
+    "@chrysalis/somefixture": "^1.0.4",
+    "@chrysalis/testamatic": "^1.0.4"
   }
 }

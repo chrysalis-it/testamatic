@@ -62,6 +62,7 @@ jobs:
           set -e
           git status
           git push --follow-tags --no-verify
+          npm ci
           npm run all:compile
           npm run all:publish
         env:

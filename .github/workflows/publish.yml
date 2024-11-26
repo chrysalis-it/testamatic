@@ -34,12 +34,14 @@ jobs:
       - name: Setup NPM
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
           cache: 'npm'
           registry-url: https://npm.pkg.github.com/
           scope: '@chrysalis-it'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
 
       - name: Show Changed
         if: ${{ github.ref_name == 'main' }}
@@ -60,6 +62,7 @@ jobs:
           set -e
           git status
           git push --follow-tags --no-verify
+          npm run all:compile
           npm run all:publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

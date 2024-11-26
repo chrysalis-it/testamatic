@@ -10,8 +10,7 @@
   ],
   "scripts": {
     "clean": "rm -rf ./dist",
-    "compile": "tsc -b .",
-    "prepublish": "npm run compile"
+    "compile": "tsc -b ."
   },
   "dependencies": {
     "@chrysalis/somefixture": "^1.0.3",

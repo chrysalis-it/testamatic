@@ -30,5 +30,6 @@
     "koa-bodyparser": "^4.4.1",
     "koa-sslify": "^5.0.0",
     "promises-arrow": "^1.0.0"
-  }
+  },
+  "gitHead": "756cd95d7f2a5429c22d2f82e042fe508abafda3"
 }

@@ -25,8 +25,8 @@ jobs:
 
       - name: Set up Git User
         run: |
-          git config user.email "pkg-dissuing-ts-shared@cuscal.com.au"
-          git config user.name "pkg-dissuing-ts-shared - ci pipeline"
+          git config user.email "getpaulj@gmail.com"
+          git config user.name "getpaulj - ci pipeline"
 
       - name: Lerna Version
         run: npm run all:version

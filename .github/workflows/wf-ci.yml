@@ -9,6 +9,12 @@ jobs:
     runs-on: ubuntu-latest
     name: Build
     steps:
+
+      - name: Setup NPM
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Checkout
         uses: actions/checkout@v4
 #      - name: lint
@@ -25,6 +31,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Setup NPM
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - name: build
         run: |
           npm ci
@@ -39,6 +49,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Setup NPM
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - name: build
         run: |
           npm ci

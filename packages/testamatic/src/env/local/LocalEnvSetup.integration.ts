@@ -4,7 +4,7 @@ import { local } from "../../test/local"
 import {EnvVars} from "../../IntegrationTestCtx";
 import {LocalEnvSetup} from "./LocalEnvSetup";
 import * as process from "process";
-import {someFixture} from "@chrysalis-it/somefixture";
+import {someFixture} from "@chrysalis-it/some-fixture";
 
 type EnvKeys = "pstoreVarName"
 

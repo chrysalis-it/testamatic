@@ -3,7 +3,7 @@ import axios from "axios"
 import { local } from "../../test/local"
 import {ParamStoreEnvSetup} from "./ParameterStoreEnvSetup";
 import {EnvVars} from "../../IntegrationTestCtx";
-import {someFixture} from "@chrysalis-it/somefixture";
+import {someFixture} from "@chrysalis-it/some-fixture";
 
 type EnvKeys = "pstoreVarName"
 

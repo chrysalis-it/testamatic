@@ -1,6 +1,6 @@
 import { inspect } from "util"
 import { LogCtxInfoProvider, makePinoLogger } from "./pino.logger"
-import {someFixture} from "@chrysalis-it/somefixture";
+import {someFixture} from "@chrysalis-it/some-fixture";
 
 describe("pino.logger", () => {
   describe("does log", () => {

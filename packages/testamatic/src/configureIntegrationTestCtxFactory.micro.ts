@@ -12,7 +12,7 @@ import {
   WhenDeltaConfig, ClientAndServer,
 } from "./configureIntegrationTestCtxFactory"
 import {MockHttpServerExpectation} from "./mockHttpServer/MockHttpExpectation";
-import {someFixture} from "@chrysalis-it/somefixture";
+import {someFixture} from "@chrysalis-it/some-fixture"
 
 type SomeEnvKeys = "EnvKey1" | "EnvKey2" | "EnvKey3" | "EnvKey4"
 type SomeEnvVars = { [key in SomeEnvKeys]: string }

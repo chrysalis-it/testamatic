@@ -15,7 +15,8 @@
   },
   "dependencies": {
     "@chrysalis-it/some-fixture": "^1.0.6",
-    "@chrysalis-it/testamatic": "^1.0.6"
+    "@chrysalis-it/testamatic": "^1.0.6",
+    "@chrysalis-it/testamatic-dynamo": "^1.0.0"
   },
   "gitHead": "756cd95d7f2a5429c22d2f82e042fe508abafda3"
 }

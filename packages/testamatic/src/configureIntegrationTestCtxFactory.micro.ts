@@ -175,7 +175,7 @@ describe("IntegrationTestCtx.micro", () => {
           x.setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[index]),
         )
 
-        givenMocks.forEach((mock, index) => mock.setup((x) => x.teardown()).returns(() => Promise.resolve(mock.object)))
+        givenMocks.forEach((mock, index) => mock.setup((x) => x.teardown()).returns(() => Promise.resolve()))
         givenMocks.forEach((mock, index) => mock.setup((x) => x.setup()))
 
         const testCtxFactory = await configureIntegrationTestCtxProvider<
@@ -371,9 +371,9 @@ describe("IntegrationTestCtx.micro", () => {
         httpMockkServerMocks.forEach((x) => x.setup((x) => x.listen()).returns(() => Promise.resolve()))
 
         givenMocks.forEach((mock) =>
-          mock.setup((given) => given.teardown()).returns(() => Promise.resolve(mock.object)),
+          mock.setup((given) => given.teardown()).returns(() => Promise.resolve()),
         )
-        givenMocks.forEach((mock) => mock.setup((given) => given.setup()).returns(() => Promise.resolve(mock.object)))
+        givenMocks.forEach((mock) => mock.setup((given) => given.setup()).returns(() => Promise.resolve()))
 
         testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
           clientAndServerProviderMock.object,

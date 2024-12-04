@@ -1,4 +1,5 @@
 export * from "./env"
+export * from "./axios"
 export * from "./datetime"
 export * from "./mockHttpServer"
 export * from "./tcp/tcp.types"

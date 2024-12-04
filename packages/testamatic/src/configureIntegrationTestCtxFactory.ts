@@ -18,9 +18,8 @@ export type EnvSetup<ENVKEYS extends string> = {
 }
 
 export interface Given {
-  teardown(): Promise<Given>
-
-  setup(): Promise<Given>
+  teardown(): Promise<void>
+  setup(): Promise<void>
 }
 
 export type ClientAndServer<Client extends object = object> = { client: RestClient, close: () => Promise<void> }
@@ -102,7 +101,7 @@ const beforeAndAfterAllMaker = (
   before: async () => {
     logger.debug("ctx.beforeAll started")
     await Promise.all([...mockHttpServers.map((x) => x.listen())])
-    await Promise.all(beforeAll.map((x) => x.teardown().then((x) => x.setup())))
+    await Promise.all(beforeAll.map((x) => x.teardown().then(() => x.setup())))
 
     logger.debug("ctx.beforeAll complete")
   },
@@ -117,7 +116,7 @@ const beforeAndAfterAllMaker = (
 const beforeAndAfterEachMaker = (mockHttpServers: MockHttpServer[], beforeEach: Given[]): BeforeAndAfter => ({
   before: async () => {
     logger.debug("ctx.beforeEach started")
-    await Promise.all(beforeEach.map((x) => x.teardown().then(x => x.setup())))
+    await Promise.all(beforeEach.map((x) => x.teardown().then(() => x.setup())))
     logger.debug("ctx.beforeEach complete")
   },
   after: async () => {

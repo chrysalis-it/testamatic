@@ -6,16 +6,13 @@ const localStackConfig = {
   region: "ap-southeast-2",
   credentials: { accessKeyId: "wegeewg", secretAccessKey: "dwqdqdwq" },
   maxRetries: 3,
-  timeout: 2000
+  timeout: 2000,
 }
-
-// const s3LocalStackConfig: S3ClientConfig = { ...localStackConfig, forcePathStyle: true }
-
-const localStackDynamoClient = new DynamoDB(localStackConfig)
 
 const awsClients = {
   ssm: new SSM(localStackConfig),
-  dynamoDocumentClient: new DocumentClient({ service: localStackDynamoClient }),
+  dynamoDocumentClient: new DocumentClient({ service: new DynamoDB(localStackConfig) }),
+  dynamoDb: new DynamoDB(localStackConfig)
 }
 
 export const local = {

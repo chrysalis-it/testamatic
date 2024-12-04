@@ -2,6 +2,9 @@
   "name": "@chrysalis-it/testamatic",
   "version": "1.0.5",
   "description": "Configurable, light weight Integration test automation",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "dist/index.js",
   "type": "commonjs",
   "types": "dist/index.d.ts",

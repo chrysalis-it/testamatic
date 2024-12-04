@@ -8,9 +8,9 @@ on:
   workflow_dispatch
 
 jobs:
-  ci:
-    uses: ./.github/workflows/wf-ci.yml
-    secrets: inherit
+#  ci:
+#    uses: ./.github/workflows/wf-ci.yml
+#    secrets: inherit
 
   publish:
     runs-on: ubuntu-latest

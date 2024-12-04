@@ -32,18 +32,9 @@ jobs:
         run: npm run all:version
 
       - name: Setup NPM
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-          registry-url: https://npm.pkg.github.com/
-          scope: '@chrysalis-it'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Checking login
-        run: |
-          npm whoami --registry=https://npm.pkg.github.com
 
       - name: Show Changed
         if: ${{ github.ref_name == 'main' }}
@@ -58,14 +49,30 @@ jobs:
             echo "has_changes=No" >> $GITHUB_OUTPUT
           fi
 
-      - name: Publish
+      - name: Build
         if: ${{ github.ref_name == 'main' && success() && steps.show_changed.outputs.has_changes == 'Yes' }}
         run: |
           set -e
           git status
           npm ci
           npm run all:compile
+
+      - name: Setup Publish NPM
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+          scope: '@chrysalis-it'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.PUBLISH_NPM_TOKEN }}
+
+      - name: Publish
+        if: ${{ github.ref_name == 'main' && success() && steps.show_changed.outputs.has_changes == 'Yes' }}
+        run: |
+          set -e
+          git status
           npm run all:publish
           git push --follow-tags --no-verify
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.PUBLISH_NPM_TOKEN }}

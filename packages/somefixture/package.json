@@ -1,6 +1,6 @@
 {
   "name": "@chrysalis-it/some-fixture",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Fixture For introducing caos into automated tests",
   "publishConfig": {
     "access": "public"

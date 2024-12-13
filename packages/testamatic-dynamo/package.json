@@ -1,6 +1,6 @@
 {
   "name": "@chrysalis-it/testamatic-dynamo",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Fixture For introducing caos into automated tests",
   "publishConfig": {
     "access": "public"
@@ -16,8 +16,8 @@
     "compile": "tsc -b ."
   },
   "dependencies": {
-    "@chrysalis-it/testamatic": "^1.0.7",
-    "@aws-sdk/lib-dynamodb": "^3.0.0"
+    "@aws-sdk/lib-dynamodb": "^3.0.0",
+    "@chrysalis-it/testamatic": "^1.0.8"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.0.0"

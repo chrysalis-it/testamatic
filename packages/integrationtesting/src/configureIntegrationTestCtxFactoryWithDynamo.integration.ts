@@ -13,13 +13,14 @@ import {
 import { PutCommand } from "@aws-sdk/lib-dynamodb"
 
 import { DynamoRow, DynamoTableSetup, dynamoWhenDeltaConfigMaker } from "@chrysalis-it/testamatic-dynamo"
+import {match} from "mismatched";
 
 type SomeEnvKeys = "EnvKeyOne" | "EnvKeyTwo"
 type SomeMockServerNames = "HttpMockServer1" | "HttpMockServer2" | "HttpMockServer3"
 
 type DynamoColumns = { col1: string; col2: string }
 type WHENDELTA = DynamoRow<DynamoColumns>[]
-describe.skip("configureIntegrationTestCtxFactory.integration", () => {
+describe("configureIntegrationTestCtxFactory.integration", () => {
   describe("test runs with dynamo config", () => {
     const url = "/"
     const expectedResponse = "yes I am alive AND LIFE IS GOOD!"
@@ -71,23 +72,23 @@ describe.skip("configureIntegrationTestCtxFactory.integration", () => {
       await ctx.all.before()
       await ctx.each.before()
 
-      const whenResponse = await ctx.when(() => {
-        local.awsClients.dynamo.send(
+      const whenResponse = await ctx.when(async () => {
+        await local.awsClients.dynamo.send(
+          new PutCommand({
+            TableName: dynamoTestTableName,
+            Item: expectedDynamoRows[0],
+          }),
+        )
+        await local.awsClients.dynamo.send(
           new PutCommand({
             TableName: dynamoTestTableName,
             Item: expectedDynamoRows[1],
           }),
         )
-        local.awsClients.dynamo.send(
-          new PutCommand({
-            TableName: dynamoTestTableName,
-            Item: expectedDynamoRows[2],
-          }),
-        )
 
         return ctx.api.client().get<string>(url)
       })
-      assertThat(whenResponse.delta).is(expectedDynamoRows)
+      assertThat(whenResponse.delta).is(match.array.unordered(expectedDynamoRows))
       assertThat(whenResponse.response.statusCode).is(200)
       assertThat(whenResponse.response.result).is(expectedResponse)
 

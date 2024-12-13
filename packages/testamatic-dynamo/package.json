@@ -17,8 +17,7 @@
   },
   "dependencies": {
     "@chrysalis-it/testamatic": "^1.0.7",
-    "aws-lambda": "^1.0.0",
-    "jose": "^5.0.0"
+    "@aws-sdk/lib-dynamodb": "^3.0.0"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.0.0"

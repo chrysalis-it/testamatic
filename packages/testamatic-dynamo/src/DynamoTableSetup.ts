@@ -1,50 +1,62 @@
-import DynamoDB = require("aws-sdk/clients/dynamodb")
-import {BeforeAndAfter, Given} from "@chrysalis-it/testamatic";
-
-
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
+import { CreateTableCommand } from "@aws-sdk/client-dynamodb"
+import { DeleteTableCommand } from "@aws-sdk/client-dynamodb"
+import { ListTablesCommand } from "@aws-sdk/client-dynamodb"
+import {Given} from "@chrysalis-it/testamatic";
 
 export class DynamoTableSetup implements Given {
   constructor(
     private tableName: string,
-    public dynamoDB: DynamoDB,
+    public dynamoDB: DynamoDBClient,
   ) {}
 
   public async setup(): Promise<void> {
-    const params: DynamoDB.Types.CreateTableInput = {
-      TableName: this.tableName,
-      KeySchema: [
-        {
-          AttributeName: "PK",
-          KeyType: "HASH", //Partition key
-        },
-        {
-          AttributeName: "SK",
-          KeyType: "RANGE", //Sort key
-        },
-      ],
-      AttributeDefinitions: [
-        {
-          AttributeName: "PK",
-          AttributeType: "S",
-        },
-        {
-          AttributeName: "SK",
-          AttributeType: "N",
-        },
-      ],
-      ProvisionedThroughput: {
-        ReadCapacityUnits: 1,
-        WriteCapacityUnits: 1,
-      },
-    }
-    const exists = (await this.dynamoDB.listTables().promise()).TableNames!.includes(this.tableName)
+    const exists = await this.tableExists()
     if (!exists) {
-      await this.dynamoDB.createTable(params).promise()
+      await this.dynamoDB.send(
+        new CreateTableCommand({
+          TableName: this.tableName,
+          KeySchema: [
+            {
+              AttributeName: "PK",
+              KeyType: "HASH", //Partition key
+            },
+            {
+              AttributeName: "SK",
+              KeyType: "RANGE", //Sort key
+            },
+          ],
+          AttributeDefinitions: [
+            {
+              AttributeName: "PK",
+              AttributeType: "S",
+            },
+            {
+              AttributeName: "SK",
+              AttributeType: "N",
+            },
+          ],
+          ProvisionedThroughput: {
+            ReadCapacityUnits: 1,
+            WriteCapacityUnits: 1,
+          },
+        }),
+      )
+      console.log("dynamo setup complete")
     }
   }
 
   public async teardown(): Promise<void> {
-    const params: DynamoDB.Types.DeleteTableInput = { TableName: this.tableName }
-    await this.dynamoDB.deleteTable(params).promise()
+    const exists = await this.tableExists()
+    if (exists) {
+      await this.dynamoDB.send(new DeleteTableCommand({ TableName: this.tableName }))
+      console.log("dynamo tesrdown complete")
+    }
+  }
+
+  private async tableExists() {
+    const tableNamesOutput = await this.dynamoDB.send(new ListTablesCommand())
+    const exists = tableNamesOutput.TableNames!.includes(this.tableName)
+    return exists
   }
 }

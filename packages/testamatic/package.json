@@ -22,7 +22,8 @@
     "@types/koa-bodyparser": "^4.0.0",
     "@types/koa-router": "^7.0.0",
     "@types/koa-sslify": "~4.0.3",
-    "typed-rest-client": "^1.0.0"
+    "typed-rest-client": "^1.0.0",
+    "@aws-sdk/client-ssm": "^3.0.0"
   },
   "dependencies": {
     "@koa/router": "^13.0.0",

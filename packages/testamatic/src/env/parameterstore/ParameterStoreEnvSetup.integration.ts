@@ -25,7 +25,7 @@ describe("ParameterStoreSetup.integration.ts", () => {
         .getParametersByPath({
           Path: path,
         })
-        .promise()
+
 
       assertThat(parametersAfterSetup.Parameters).is([
         {
@@ -45,7 +45,7 @@ describe("ParameterStoreSetup.integration.ts", () => {
         .getParametersByPath({
           Path: path,
         })
-        .promise()
+
       assertThat(parametersAfterTeardown.Parameters).is([])
     })
   })

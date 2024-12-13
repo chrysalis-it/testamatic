@@ -18,5 +18,12 @@
     "@chrysalis-it/testamatic": "^1.0.7",
     "@chrysalis-it/testamatic-dynamo": "^1.0.6"
   },
+
+  "devDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.0.0",
+    "@aws-sdk/lib-dynamodb": "^3.0.0",
+    "@chrysalis-it/testamatic-dynamo": "^1.0.0"
+  },
+
   "gitHead": "756cd95d7f2a5429c22d2f82e042fe508abafda3"
 }

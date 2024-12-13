@@ -1,17 +1,16 @@
-import * as aws from "aws-sdk"
-import {SSM} from "aws-sdk"
-import {PutParameterRequest} from "aws-sdk/clients/ssm"
 import {promises} from "promises-arrow"
 import {logger} from "../../logger/Logger"
 import {EnvSetup} from "../../configureIntegrationTestCtxFactory"
 import {EnvVars} from "../../IntegrationTestCtx"
+import {DeleteParameterResult} from "@aws-sdk/client-ssm";
+import {SSM, PutParameterRequest} from "@aws-sdk/client-ssm";
 
 export class ParamStoreEnvSetup<ENVKEYS extends string> implements EnvSetup<ENVKEYS> {
   private paramsToTeardown: PutParameterRequest[] = []
 
   constructor(
     private pstorePath: string,
-    private ssm: aws.SSM,
+    private ssm: SSM,
   ) {
   }
 
@@ -36,7 +35,6 @@ export class ParamStoreEnvSetup<ENVKEYS extends string> implements EnvSetup<ENVK
   setupOne = (pstorePutRequest: PutParameterRequest): Promise<void> => {
     return this.ssm
       .putParameter(pstorePutRequest)
-      .promise()
       .then(() => this.paramsToTeardown.push(pstorePutRequest))
       .then(() => logger.info(`Parameter added`, {name: pstorePutRequest.Name, value: pstorePutRequest.Value}))
       .catch((err) => {
@@ -50,7 +48,7 @@ export class ParamStoreEnvSetup<ENVKEYS extends string> implements EnvSetup<ENVK
       Name: param.Name,
     }
     return new Promise<void>((resolve, reject) => {
-      this.ssm.deleteParameter(deleteParams, (err, data: SSM.Types.DeleteParameterResult) => {
+      this.ssm.deleteParameter(deleteParams, (err) => {
         if (err) {
           // logger.warn({ err }, `Error deleting Parameter named ${deleteParams.Name} removed`)
           if (err.code !== "ParameterNotFound") return reject(err)

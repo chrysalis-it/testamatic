@@ -1,5 +1,6 @@
-import { DynamoDB, SSM } from "aws-sdk"
-import { DocumentClient } from "aws-sdk/clients/dynamodb"
+import { SSM } from "@aws-sdk/client-ssm"
+import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb"
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 
 const localStackConfig = {
   endpoint: "http://localstack:4566",
@@ -11,8 +12,7 @@ const localStackConfig = {
 
 const awsClients = {
   ssm: new SSM(localStackConfig),
-  dynamoDocumentClient: new DocumentClient({ service: new DynamoDB(localStackConfig) }),
-  dynamoDb: new DynamoDB(localStackConfig)
+  dynamo: DynamoDBDocumentClient.from(new DynamoDBClient(localStackConfig)),
 }
 
 export const local = {

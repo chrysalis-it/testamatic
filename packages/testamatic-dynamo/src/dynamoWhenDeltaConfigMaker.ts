@@ -1,6 +1,5 @@
-import DynamoDB = require("aws-sdk/clients/dynamodb")
 import { WhenDeltaConfig } from "@chrysalis-it/testamatic"
-import { PrettyPrinter } from "mismatched"
+import {DynamoDBDocumentClient, ScanCommand} from "@aws-sdk/lib-dynamodb";
 
 export type DynamoID = {
   PK: string
@@ -10,7 +9,7 @@ export type DynamoID = {
 export type DynamoRow<COLUMNS extends object> = DynamoID & COLUMNS
 
 export const dynamoWhenDeltaConfigMaker = <COLUMNS extends object>(
-  dynamoClient: DynamoDB.DocumentClient,
+  dynamoClient: DynamoDBDocumentClient,
   tableName: string,
 ): WhenDeltaConfig<DynamoRow<COLUMNS>[]> => {
   const scan = scanMaker<COLUMNS>(dynamoClient, tableName)
@@ -27,14 +26,12 @@ export const dynamoWhenDeltaConfigMaker = <COLUMNS extends object>(
 }
 
 const scanMaker =
-  <COLUMNS extends object>(dynamoClient: DynamoDB.DocumentClient, tableName: string) =>
+  <COLUMNS extends object>(dynamoClient: DynamoDBDocumentClient, tableName: string) =>
   async () => {
-    const input: DynamoDB.Types.ScanInput = {
-      TableName: tableName,
-    }
-    const data = await dynamoClient.scan(input).promise()
+    const data = await dynamoClient.send(
+      new ScanCommand({
+        TableName: tableName,
+      }),
+    )
     return (data.Items ?? []) as DynamoRow<COLUMNS>[]
   }
-
-const printMaker = (dynamoClient: DynamoDB.DocumentClient, tableName: string) => async () =>
-  console.log(`Table content => ${PrettyPrinter.make().render(await scanMaker(dynamoClient, tableName))}`)

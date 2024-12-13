@@ -2,6 +2,7 @@
   "name": "@chrysalis-it/testamatic-dynamo",
   "version": "1.0.7",
   "description": "Fixture For introducing caos into automated tests",
+  "license": "Apache 2.0",
   "publishConfig": {
     "access": "public"
   },

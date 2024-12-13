@@ -1,6 +1,7 @@
 {
   "name": "@chrysalis-it/integration-testing",
   "version": "1.0.8",
+  "license": "Apache 2.0",
   "private": true,
   "description": "Integration tests for MonoRepo",
   "main": "dist/index.js",

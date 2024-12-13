@@ -7,10 +7,11 @@ import {PutCommand} from "@aws-sdk/lib-dynamodb";
 import {DynamoRow} from "./dynamoWhenDeltaConfigMaker";
 import {someFixture} from "@chrysalis-it/some-fixture";
 import {match} from "mismatched";
+import {simpleTableDefinitionMaker} from "./DynamoTableSetup";
 
 describe("dynamoWhenDeltaConfigMaker.integration", () => {
   const TABLE_NAME = "testTableName";
-  const dynamoTableSetup = new DynamoTableSetup(TABLE_NAME, local.awsClients.dynamo);
+  const dynamoTableSetup = new DynamoTableSetup(local.awsClients.dynamo, simpleTableDefinitionMaker(TABLE_NAME));
   const whenDeltaConfig = dynamoWhenDeltaConfigMaker(local.awsClients.dynamo, TABLE_NAME)
 
 

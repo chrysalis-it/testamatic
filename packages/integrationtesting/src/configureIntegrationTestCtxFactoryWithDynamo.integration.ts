@@ -14,6 +14,7 @@ import { PutCommand } from "@aws-sdk/lib-dynamodb"
 
 import { DynamoRow, DynamoTableSetup, dynamoWhenDeltaConfigMaker } from "@chrysalis-it/testamatic-dynamo"
 import {match} from "mismatched";
+import {simpleTableDefinitionMaker} from "@chrysalis-it/testamatic-dynamo";
 
 type SomeEnvKeys = "EnvKeyOne" | "EnvKeyTwo"
 type SomeMockServerNames = "HttpMockServer1" | "HttpMockServer2" | "HttpMockServer3"
@@ -65,7 +66,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
         },
         dynamoWhenDeltaConfigMaker<DynamoColumns>(local.awsClients.dynamo, dynamoTestTableName),
         [],
-        [new DynamoTableSetup(dynamoTestTableName, local.awsClients.dynamo)],
+        [new DynamoTableSetup(local.awsClients.dynamo, simpleTableDefinitionMaker(dynamoTestTableName))],
       )
       const ctx = await testCtx()
 

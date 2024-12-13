@@ -1,6 +1,7 @@
 {
   "name": "@chrysalis-it/testamatic",
   "version": "1.0.8",
+  "license": "Apache 2.0",
   "description": "Configurable, light weight Integration test automation",
   "publishConfig": {
     "access": "public"

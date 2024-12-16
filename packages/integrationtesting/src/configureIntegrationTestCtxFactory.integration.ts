@@ -15,14 +15,13 @@ import {
   ServerStarter,
 } from "@chrysalis-it/testamatic"
 import { createAxiosInstance } from "@chrysalis-it/testamatic"
-import { logger } from "./logger/logger"
-import { consoleLogger } from "./logger/console/consoleLogger"
+import { consoleLogger } from "@chrysalis-it/testamatic"
 
 type SomeEnvKeys = "EnvKeyOne" | "EnvKeyTwo"
 type SomeMockServerNames = "HttpMockServer1" | "HttpMockServer2" | "HttpMockServer3"
 
 describe("configureIntegrationTestCtxFactory.integration", () => {
-  const axiosClient = createAxiosInstance("axios for configureIntegrationTestCtxFactory.integration", logger)
+  const axiosClient = createAxiosInstance("axios for configureIntegrationTestCtxFactory.integration", consoleLogger)
 
   describe("test runs with", () => {
     const url = "/"
@@ -151,7 +150,6 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
               "EnvKeyOne",
               koaMockServerTcpListenerFactory,
               {
-                host: "localhost",
                 protocol: "http",
                 port: 9999,
               },
@@ -216,7 +214,6 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
               "EnvKeyOne",
               koaMockServerTcpListenerFactory,
               {
-                host: "localhost",
                 protocol: "http",
                 port: 9999,
               },
@@ -295,7 +292,6 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
               "EnvKeyOne",
               koaMockServerTcpListenerFactory,
               {
-                host: "localhost",
                 protocol: "http",
                 port: 9999,
               },
@@ -361,7 +357,6 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
               "EnvKeyOne",
               koaMockServerTcpListenerFactory,
               {
-                host: "localhost",
                 protocol: "http",
                 port: 9999,
               },

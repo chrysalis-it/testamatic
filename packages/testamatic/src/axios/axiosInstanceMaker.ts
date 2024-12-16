@@ -1,13 +1,13 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from "axios"
 import axiosRetry, { IAxiosRetryConfig } from "axios-retry"
 import { isNativeError } from "util/types"
-import { StructuredLogger } from "../logger/StructuredLogger"
+import { TestamaticLogger } from "../logger/TestamaticLogger"
 
 export type RetryConfig = Pick<IAxiosRetryConfig, "retries" | "retryDelay">
 
 export const createAxiosInstance = (
   serviceName: string,
-  logger: StructuredLogger,
+  logger: TestamaticLogger,
   retryConfig: RetryConfig = {
     retries: 3,
     retryDelay: (retryCount) => retryCount * 2,
@@ -34,7 +34,7 @@ export const createAxiosInstance = (
 }
 
 const requestLoggerFactory =
-  (serviceName: string, logger: StructuredLogger) => (request: InternalAxiosRequestConfig) => {
+  (serviceName: string, logger: TestamaticLogger) => (request: InternalAxiosRequestConfig) => {
     try {
       logger.info("Request Sent", {
         ...loggableRequest(request),
@@ -49,7 +49,7 @@ const requestLoggerFactory =
     return request
   }
 
-const responseLoggerFactory = (serviceName: string, logger: StructuredLogger) => (response: AxiosResponse) => {
+const responseLoggerFactory = (serviceName: string, logger: TestamaticLogger) => (response: AxiosResponse) => {
   try {
     logger.info("Response Received", {
       ...loggableResponse(response),
@@ -64,7 +64,7 @@ const responseLoggerFactory = (serviceName: string, logger: StructuredLogger) =>
   return response
 }
 
-const requestErrorLoggerFactory = (serviceName: string, logger: StructuredLogger) => (error: AxiosError) => {
+const requestErrorLoggerFactory = (serviceName: string, logger: TestamaticLogger) => (error: AxiosError) => {
   try {
     logger.error(
       `Request Error`,
@@ -92,7 +92,7 @@ const requestErrorLoggerFactory = (serviceName: string, logger: StructuredLogger
 }
 
 const responseErrorLoggerFactory =
-  (serviceName: string, logger: StructuredLogger) =>
+  (serviceName: string, logger: TestamaticLogger) =>
   (error: AxiosError): never => {
     const errorLogger = logger.child({ serviceName })
 

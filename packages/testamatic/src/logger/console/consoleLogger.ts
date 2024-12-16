@@ -1,6 +1,6 @@
-import { StructuredLogger } from "../StructuredLogger"
+import { TestamaticLogger } from "../TestamaticLogger"
 
-export const consoleLogger: StructuredLogger = {
+export const consoleLogger: TestamaticLogger = {
   info: console.info,
   debug: console.debug,
   warn: console.info,

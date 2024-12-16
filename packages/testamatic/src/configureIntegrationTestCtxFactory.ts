@@ -2,7 +2,7 @@ import { MockHttpServer } from "./mockHttpServer/MockHttpServer"
 import { EnvVars, IntegrationTestCtx, IsExecuted, WHENRESPONSE } from "./IntegrationTestCtx"
 import { MockHttpServerExpectation } from "./mockHttpServer/MockHttpExpectation"
 import { RestClient } from "typed-rest-client"
-import { StructuredLogger } from "./logger/StructuredLogger"
+import { TestamaticLogger } from "./logger/TestamaticLogger"
 
 export type EnvSetup<ENVKEYS extends string> = {
   setup: (env: EnvVars<ENVKEYS>) => Promise<void>
@@ -11,6 +11,7 @@ export type EnvSetup<ENVKEYS extends string> = {
 
 export interface Given {
   teardown(): Promise<void>
+
   setup(): Promise<void>
 }
 
@@ -43,7 +44,7 @@ export const configureIntegrationTestCtxProvider = <
   APICLIENT extends object = RestClient,
 >(
   clientAndServerProvider: ClientAndServerProvider<ENVKEYS, APICLIENT>,
-  logger: StructuredLogger,
+  logger: TestamaticLogger,
   envConfig: EnvConfig<ENVKEYS> = nullEnvConfig,
   whenDeltaConfig?: WhenDeltaConfig<WHENDELTA>,
   mockHttpServers: MockHttpServer<MOCKSERVERNAMES, ENVKEYS>[] = [],
@@ -56,7 +57,7 @@ export const configureIntegrationTestCtxProvider = <
     // Only setup once, might want to re-create before each test
     await envConfig.envSetup.teardown()
     await envConfig.envSetup.setup(env)
-    const clientAndServerPromise: Promise<ClientAndServer<APICLIENT>> = clientAndServerProvider(env)
+    const clientAndServer: ClientAndServer<APICLIENT> = await clientAndServerProvider(env)
 
     return {
       env: env,
@@ -70,8 +71,10 @@ export const configureIntegrationTestCtxProvider = <
         },
         after: async () => {
           logger.debug("ctx.afterAll started")
-          !clientAndServerPromise || (await clientAndServerPromise.then((clientAndServer) => clientAndServer.close()))
+          await clientAndServer.close()
+
           await Promise.all([mockHttpServers.map((x) => x.close())])
+
           logger.debug("ctx.afterAll complete")
         },
       },
@@ -94,12 +97,9 @@ export const configureIntegrationTestCtxProvider = <
           return mockServer.expect(expectation)
         },
       },
-      api: await clientAndServerPromise.then((clientAndServer) => ({
-        client: () => clientAndServer.client,
-      })),
+      api: { client: () => clientAndServer.client },
       when: async <RES>(isExecuted: IsExecuted<RES>): Promise<WHENRESPONSE<RES, WHENDELTA>> => {
         try {
-          await clientAndServerPromise
           const before = whenDeltaConfig ? await whenDeltaConfig.snapshot() : ({} as WHENDELTA) // TODO PJ
           logger.info("When started", { env: env, beforeSnapshot: before })
           const response = await isExecuted()

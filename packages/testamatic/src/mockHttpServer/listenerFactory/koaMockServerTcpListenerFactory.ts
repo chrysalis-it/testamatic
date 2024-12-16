@@ -6,15 +6,15 @@ import { isFunction } from "util"
 import { PrettyPrinter } from "mismatched"
 import { MockConfig, MockHttpListenerFactory } from "../MockHttpServer"
 import { httpListenerFactory, ServerStarter } from "./httpListenerFactory"
+import { TestamaticLogger } from "../../logger/TestamaticLogger"
 import { HttpConfig } from "../../http/http.types"
-import { StructuredLogger } from "../../logger/StructuredLogger"
 
 export const koaMockServerTcpListenerFactory: MockHttpListenerFactory = (
   mockConfig: MockConfig,
-  tcpConfig: HttpConfig,
-  logger: StructuredLogger,
+  httpConfig: HttpConfig,
+  logger: TestamaticLogger,
 ) =>
-  httpListenerFactory(tcpConfig, koaServerStarterMaker(mockConfig), `${mockConfig.mockServerName} mock server`, logger)
+  httpListenerFactory(httpConfig, koaServerStarterMaker(mockConfig), `${mockConfig.mockServerName} mock server`, logger)
 
 const koaServerStarterMaker = (mockConfig: MockConfig): ServerStarter => {
   const koa = new Koa()

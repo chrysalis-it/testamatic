@@ -6,12 +6,12 @@ import {
 } from "./MockHttpExpectation"
 import { HttpConfig, HttpListener } from "../http/http.types"
 import { httpConfigUrlMaker } from "../http/httpConfigUrlMaker"
-import { StructuredLogger } from "../logger/StructuredLogger"
+import { TestamaticLogger } from "../logger/TestamaticLogger"
 
 export type MockHttpListenerFactory = (
   mockConfig: MockConfig,
-  tcpConfig: HttpConfig,
-  logger: StructuredLogger,
+  httpConfig: HttpConfig,
+  logger: TestamaticLogger,
 ) => Promise<HttpListener>
 
 export interface MockHttpServerFailure {
@@ -33,10 +33,10 @@ export class MockHttpServer<MOCKSERVERNAMES extends string = string, ENVKEYS ext
     private urlEnvKey: ENVKEYS,
     private listenerFactory: MockHttpListenerFactory,
     private config: HttpConfig,
-    private logger: StructuredLogger,
+    private logger: TestamaticLogger,
   ) {
     this.httpConfig = {
-      ...config,
+      protocol: config.protocol,
       port: MockHttpServer.nextServerPort++,
     }
   }

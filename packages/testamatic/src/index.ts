@@ -3,7 +3,7 @@ export * from "./axios"
 export * from "./datetime"
 export * from "./mockHttpServer"
 export * from "./http/http.types"
-export * from "./test/local"
+export * from "./logger"
 
 export * from "./IntegrationTestCtx"
 export * from "./configureIntegrationTestCtxFactory"

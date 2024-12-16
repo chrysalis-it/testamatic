@@ -20,7 +20,6 @@ describe("koaMockServerTcpListenerFactory.integration", () => {
 
     const tcpConfig: HttpConfig = {
       protocol: "http",
-      host: "localhost",
       port: 9900,
     }
     const mockConfig: MockConfig = {
@@ -54,7 +53,6 @@ describe("koaMockServerTcpListenerFactory.integration", () => {
 
     const tcpConfig: HttpConfig = {
       protocol: "http",
-      host: "localhost",
       port: 9901,
     }
 
@@ -97,7 +95,6 @@ describe("koaMockServerTcpListenerFactory.integration", () => {
 
     const tcpConfig: HttpConfig = {
       protocol: "http",
-      host: "localhost",
       port: 9902,
     }
 

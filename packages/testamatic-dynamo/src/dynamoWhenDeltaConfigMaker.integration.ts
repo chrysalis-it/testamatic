@@ -2,28 +2,38 @@ import { assertThat } from "mismatched"
 import { match } from "mismatched"
 import { DynamoTableSetup } from "./DynamoTableSetup"
 import { simpleTableDefinitionMaker } from "./DynamoTableSetup"
-import { local } from "@chrysalis-it/testamatic"
 import { dynamoWhenDeltaConfigMaker } from "./dynamoWhenDeltaConfigMaker"
 import { DynamoRow } from "./dynamoWhenDeltaConfigMaker"
 import { PutCommand } from "@aws-sdk/lib-dynamodb"
+import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb"
 import { someFixture } from "@chrysalis-it/some-fixture"
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
+
+const localStackConfig = {
+  endpoint: "http://localstack:4566",
+  region: "ap-southeast-2",
+  credentials: { accessKeyId: "wegeewg", secretAccessKey: "dwqdqdwq" },
+  maxRetries: 3,
+  timeout: 2000,
+}
 
 describe("dynamoWhenDeltaConfigMaker.integration", () => {
+  const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient(localStackConfig))
   const TABLE_NAME = "testTableName"
-  const dynamoTableSetup = new DynamoTableSetup(local.awsClients.dynamo, simpleTableDefinitionMaker(TABLE_NAME))
-  const whenDeltaConfig = dynamoWhenDeltaConfigMaker(local.awsClients.dynamo, TABLE_NAME)
+  const dynamoTableSetup = new DynamoTableSetup(dynamo, simpleTableDefinitionMaker(TABLE_NAME))
+  const whenDeltaConfig = dynamoWhenDeltaConfigMaker(dynamo, TABLE_NAME)
 
   beforeAll(async () => await dynamoTableSetup.setup())
   afterAll(async () => await dynamoTableSetup.teardown())
 
   describe("snapshot", () => {
     it("when no rows", async () => {
-      const whenDeltaConfig = dynamoWhenDeltaConfigMaker(local.awsClients.dynamo, TABLE_NAME)
+      const whenDeltaConfig = dynamoWhenDeltaConfigMaker(dynamo, TABLE_NAME)
       const snapshot = await whenDeltaConfig.snapshot()
       assertThat(snapshot).is([])
     })
     it("when rows exist", async () => {
-      const whenDeltaConfig = dynamoWhenDeltaConfigMaker(local.awsClients.dynamo, TABLE_NAME)
+      const whenDeltaConfig = dynamoWhenDeltaConfigMaker(dynamo, TABLE_NAME)
 
       const expectedDynamoRows: DynamoRow<DynamoColumns>[] = [
         {
@@ -40,13 +50,13 @@ describe("dynamoWhenDeltaConfigMaker.integration", () => {
         },
       ]
 
-      await local.awsClients.dynamo.send(
+      await dynamo.send(
         new PutCommand({
           TableName: TABLE_NAME,
           Item: expectedDynamoRows[0],
         }),
       )
-      await local.awsClients.dynamo.send(
+      await dynamo.send(
         new PutCommand({
           TableName: TABLE_NAME,
           Item: expectedDynamoRows[1],
@@ -77,7 +87,7 @@ describe("dynamoWhenDeltaConfigMaker.integration", () => {
         console.log(JSON.stringify(before))
 
         //when
-        const expectedDelta = await createTwoRows(TABLE_NAME)
+        const expectedDelta = await createTwoRows(TABLE_NAME, dynamo)
 
         //then
         const delta = await whenDeltaConfig.diff(before)
@@ -91,7 +101,7 @@ describe("dynamoWhenDeltaConfigMaker.integration", () => {
     describe("when rows before", () => {
       it("and none added", async () => {
         //given
-        await createTwoRows(TABLE_NAME)
+        await createTwoRows(TABLE_NAME, dynamo)
         const snapshot = await whenDeltaConfig.snapshot()
 
         //when
@@ -103,9 +113,9 @@ describe("dynamoWhenDeltaConfigMaker.integration", () => {
 
       it("and rows added", async () => {
         //given
-        await createTwoRows(TABLE_NAME)
+        await createTwoRows(TABLE_NAME, dynamo)
         const snapshot = await whenDeltaConfig.snapshot()
-        const rowsAdded = await createTwoRows(TABLE_NAME)
+        const rowsAdded = await createTwoRows(TABLE_NAME, dynamo)
 
         //when
         const delta = await whenDeltaConfig.diff(snapshot)
@@ -119,7 +129,7 @@ describe("dynamoWhenDeltaConfigMaker.integration", () => {
 
 type DynamoColumns = { col1: string; col2: string }
 
-const createTwoRows = async (table_name: string) => {
+const createTwoRows = async (table_name: string, dynamo: DynamoDBDocumentClient) => {
   const expectedDynamoRows: DynamoRow<DynamoColumns>[] = [
     {
       PK: someFixture.someUniqueString("PK"),
@@ -134,13 +144,13 @@ const createTwoRows = async (table_name: string) => {
       col2: someFixture.someUniqueString("col2"),
     },
   ]
-  await local.awsClients.dynamo.send(
+  await dynamo.send(
     new PutCommand({
       TableName: table_name,
       Item: expectedDynamoRows[0],
     }),
   )
-  await local.awsClients.dynamo.send(
+  await dynamo.send(
     new PutCommand({
       TableName: table_name,
       Item: expectedDynamoRows[1],

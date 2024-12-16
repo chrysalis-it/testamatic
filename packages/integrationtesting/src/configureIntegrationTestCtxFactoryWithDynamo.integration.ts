@@ -5,17 +5,17 @@ import { RestClient } from "typed-rest-client"
 import {
   ClientAndServerProvider,
   configureIntegrationTestCtxProvider,
-  local,
   LocalEnvSetup,
   restClientAndExpressServerProviderMaker,
   ServerStarter,
 } from "@chrysalis-it/testamatic"
+import { consoleLogger } from "@chrysalis-it/testamatic"
 
 import { PutCommand } from "@aws-sdk/lib-dynamodb"
 
 import { DynamoRow, DynamoTableSetup, dynamoWhenDeltaConfigMaker } from "@chrysalis-it/testamatic-dynamo"
 import { simpleTableDefinitionMaker } from "@chrysalis-it/testamatic-dynamo"
-import { consoleLogger } from "./logger/console/consoleLogger"
+import {local} from "./local";
 
 type SomeEnvKeys = "EnvKeyOne" | "EnvKeyTwo"
 

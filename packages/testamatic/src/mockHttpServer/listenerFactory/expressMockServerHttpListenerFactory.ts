@@ -6,12 +6,12 @@ import express, { Handler } from "express"
 import { httpListenerFactory } from "./httpListenerFactory"
 import http from "http"
 import { HttpConfig } from "../../http/http.types"
-import { StructuredLogger } from "../../logger/StructuredLogger"
+import { TestamaticLogger } from "../../logger/TestamaticLogger"
 
 export const expressMockServerHttpListenerFactory: MockHttpListenerFactory = (
   mockConfig: MockConfig,
   httpConfig: HttpConfig,
-  logger: StructuredLogger,
+  logger: TestamaticLogger,
 ) => {
   const expressApp = express()
   expressApp.use(expressHandlerMaker(mockConfig))

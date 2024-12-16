@@ -4,26 +4,24 @@ import { httpConfigUrlMaker } from "../../http/httpConfigUrlMaker"
 import { ListenOptions } from "net"
 import { Server } from "http"
 import { HttpConfig, HttpListener } from "../../http/http.types"
-import { StructuredLogger } from "../../logger/StructuredLogger"
+import { TestamaticLogger } from "../../logger/TestamaticLogger"
 
-export type ListenerConfig = Omit<HttpConfig, "host">
 
 export type ServerStarter = { listen: (options: ListenOptions, listeningListener?: () => void) => Server }
 
 export const httpListenerFactory = (
-  httpConfig: ListenerConfig,
+  httpConfig: HttpConfig,
   serverStarter: ServerStarter,
   name: string,
-  logger: StructuredLogger,
+  logger: TestamaticLogger,
 ) =>
   new Promise<HttpListener>((resolve, reject) => {
-    const onUrl = httpConfigUrlMaker({ ...httpConfig, host: "localhost" })
+    const onUrl = httpConfigUrlMaker(httpConfig)
     console.log(`🚀 ${name} is starting on ${onUrl}`)
     try {
       const server = serverStarter.listen({
         port: httpConfig.port,
         exclusive: false,
-        // host: tcpConfig.host,
       })
 
       server.on("listening", () => {

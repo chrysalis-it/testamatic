@@ -31,7 +31,7 @@ export class DynamoTableSetup implements Given {
 
   private async tableExists() {
     const tableNamesOutput = await this.dynamoDB.send(new ListTablesCommand())
-    const exists = tableNamesOutput.TableNames!.includes(this.tableDefinition.TableName!)
+    const exists = (tableNamesOutput.TableNames ?? []).includes(this.tableDefinition.TableName)
     return exists
   }
 }

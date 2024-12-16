@@ -1,16 +1,16 @@
 import { ClientAndServer } from "./configureIntegrationTestCtxFactory"
 import { RestClient } from "typed-rest-client"
 import { restClientMaker } from "./restClientMaker"
-import { ServerStarter, httpListenerFactory } from "./mockHttpServer/listenerFactory/httpListenerFactory"
-import { ListenerConfig } from "./mockHttpServer/listenerFactory/httpListenerFactory"
-import { StructuredLogger } from "./logger/StructuredLogger"
+import { httpListenerFactory, ServerStarter } from "./mockHttpServer/listenerFactory/httpListenerFactory"
+import { TestamaticLogger } from "./logger/TestamaticLogger"
+import { HttpConfig } from "./http/http.types"
 
 export const restClientAndExpressServerProviderMaker =
   (
     serverStarterProvider: () => ServerStarter,
     name: string,
-    logger: StructuredLogger,
-    tcpConfig: ListenerConfig = {
+    logger: TestamaticLogger,
+    tcpConfig: HttpConfig = {
       port: 9999,
       protocol: "http",
     },

@@ -1,12 +1,12 @@
 import { EnvSetup } from "../../configureIntegrationTestCtxFactory"
 import { EnvVars } from "../../IntegrationTestCtx"
 import * as process from "process"
-import { StructuredLogger } from "../../logger/StructuredLogger"
+import { TestamaticLogger } from "../../logger/TestamaticLogger"
 
 export class LocalEnvSetup<ENVKEYS extends string> implements EnvSetup<ENVKEYS> {
   private envToTeardown: EnvVars<ENVKEYS> | undefined
 
-  constructor(private logger: StructuredLogger) {}
+  constructor(private logger: TestamaticLogger) {}
 
   public async setup(env: EnvVars<ENVKEYS>): Promise<void> {
     return Promise.resolve().then(() => {

@@ -1,4 +1,4 @@
-export interface StructuredLogger {
+export interface TestamaticLogger {
   fatal(message: string, data: object): void
 
   error(message: string, error: unknown): void
@@ -11,5 +11,5 @@ export interface StructuredLogger {
 
   trace(message: string, data?: object): void
 
-  child(data: object): StructuredLogger
+  child(data: object): TestamaticLogger
 }

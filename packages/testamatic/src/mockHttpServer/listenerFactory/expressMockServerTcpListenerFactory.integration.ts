@@ -20,7 +20,6 @@ describe("expressMockServerTcpListenerFactory.integration.ts", () => {
 
     const tcpConfig: HttpConfig = {
       protocol: "http",
-      host: "localhost",
       port: 9900,
     }
     const mockConfig: MockConfig = {
@@ -53,7 +52,6 @@ describe("expressMockServerTcpListenerFactory.integration.ts", () => {
 
     const tcpConfig: HttpConfig = {
       protocol: "http",
-      host: "localhost",
       port: 9901,
     }
 
@@ -96,7 +94,6 @@ describe("expressMockServerTcpListenerFactory.integration.ts", () => {
 
     const tcpConfig: HttpConfig = {
       protocol: "http",
-      host: "localhost",
       port: 9902,
     }
 

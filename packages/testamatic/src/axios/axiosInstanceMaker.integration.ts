@@ -27,7 +27,6 @@ describe("axiosInstanceMaker.integration", () => {
       "SomeEnvKey",
       koaMockServerTcpListenerFactory,
       {
-        host: "localhost",
         protocol: "http",
         port: 9111,
       },

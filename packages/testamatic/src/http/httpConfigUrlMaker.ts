@@ -1,4 +1,4 @@
 import { HttpConfig } from "./http.types"
 
-export const httpConfigUrlMaker = (tcpConfig: HttpConfig) =>
-  `${tcpConfig.protocol}://${tcpConfig.host}:${tcpConfig.port}`
+export const httpConfigUrlMaker = (tcpConfig: HttpConfig, host = "localhost") =>
+  `${tcpConfig.protocol}://${host}:${tcpConfig.port}`

@@ -2,7 +2,7 @@ import { promises } from "promises-arrow"
 import { EnvSetup } from "../../configureIntegrationTestCtxFactory"
 import { EnvVars } from "../../IntegrationTestCtx"
 import { PutParameterRequest, SSM } from "@aws-sdk/client-ssm"
-import { StructuredLogger } from "../../logger/StructuredLogger"
+import { TestamaticLogger } from "../../logger/TestamaticLogger"
 
 export class ParamStoreEnvSetup<ENVKEYS extends string> implements EnvSetup<ENVKEYS> {
   private paramsToTeardown: PutParameterRequest[] = []
@@ -10,7 +10,7 @@ export class ParamStoreEnvSetup<ENVKEYS extends string> implements EnvSetup<ENVK
   constructor(
     private pstorePath: string,
     private ssm: SSM,
-    private logger: StructuredLogger,
+    private logger: TestamaticLogger,
   ) {}
 
   public async setup(env: EnvVars<ENVKEYS>): Promise<void> {

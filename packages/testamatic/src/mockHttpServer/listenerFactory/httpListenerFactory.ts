@@ -20,17 +20,15 @@ export const httpListenerFactory = (
     const onUrl = httpConfigUrlMaker({ ...httpConfig, host: "localhost" })
     console.log(`🚀 ${name} is starting on ${onUrl}`)
     try {
-      const server = serverStarter.listen(
-        {
-          port: httpConfig.port,
-          exclusive: false,
-          // host: tcpConfig.host,
-        },
-        () => {
-          logger.info(`🚀 ${name} is listening on ${onUrl}`)
-          resolve({ onUrl, close: closeHtttpListenerMaker(name, onUrl, server) })
-        },
-      )
+      const server = serverStarter.listen({
+        port: httpConfig.port,
+        exclusive: false,
+        // host: tcpConfig.host,
+      })
+
+      server.on("listening", () => {
+        resolve({ onUrl, close: closeHtttpListenerMaker(name, onUrl, server) })
+      })
 
       server.on("close", () => {
         logger.info("HTTP server closed ")
@@ -38,6 +36,10 @@ export const httpListenerFactory = (
       server.on("error", (e) => {
         logger.error("HTTP server closed with error", e?.message)
       })
+      if (server.listening) {
+        logger.info(`🚀 ${name} is listening on ${onUrl}`)
+        resolve({ onUrl, close: closeHtttpListenerMaker(name, onUrl, server) })
+      }
     } catch (err) {
       reject(err)
     }

@@ -18,7 +18,7 @@ const defaultRedactionDictionaryProvider: RedactionDictionaryProvider = () => [
 
 export const makePinoLogger = (
   fetchReqInfo: LogCtxInfoProvider = nullLogCtxProvider,
-  fetchRedactionDictionary: RedactionDictionaryProvider = defaultRedactionDictionaryProvider
+  fetchRedactionDictionary: RedactionDictionaryProvider = defaultRedactionDictionaryProvider,
 ): StructuredLogger =>
   new StructuredPinoLogger(
     pino({
@@ -46,5 +46,5 @@ export const makePinoLogger = (
         paths: fetchRedactionDictionary(),
         censor: "******",
       },
-    })
+    }),
   )

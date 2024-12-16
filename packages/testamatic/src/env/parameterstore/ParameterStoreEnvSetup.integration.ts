@@ -1,31 +1,27 @@
 import { assertThat, match } from "mismatched"
-import axios from "axios"
 import { local } from "../../test/local"
-import {ParamStoreEnvSetup} from "./ParameterStoreEnvSetup";
-import {EnvVars} from "../../IntegrationTestCtx";
-import {someFixture} from "@chrysalis-it/some-fixture";
+import { ParamStoreEnvSetup } from "./ParameterStoreEnvSetup"
+import { EnvVars } from "../../IntegrationTestCtx"
+import { someFixture } from "@chrysalis-it/some-fixture"
 
 type EnvKeys = "pstoreVarName"
 
 const env: EnvVars<EnvKeys> = {
-  pstoreVarName: "somePStoreValue"
+  pstoreVarName: "somePStoreValue",
 }
 
 describe("ParameterStoreSetup.integration.ts", () => {
-
   describe("ParameterStoreSetup.integration.ts", () => {
     it("setup and teardown one string var", async () => {
       const path = `/some/${someFixture.someUniqueString("unique")}/pstore/path`
 
-      const setup = new ParamStoreEnvSetup( path, local.awsClients.ssm)
+      const setup = new ParamStoreEnvSetup(path, local.awsClients.ssm)
 
       await setup.setup(env)
 
-      const parametersAfterSetup = await local.awsClients.ssm
-        .getParametersByPath({
-          Path: path,
-        })
-
+      const parametersAfterSetup = await local.awsClients.ssm.getParametersByPath({
+        Path: path,
+      })
 
       assertThat(parametersAfterSetup.Parameters).is([
         {
@@ -41,13 +37,11 @@ describe("ParameterStoreSetup.integration.ts", () => {
 
       await setup.teardown()
 
-      const parametersAfterTeardown = await local.awsClients.ssm
-        .getParametersByPath({
-          Path: path,
-        })
+      const parametersAfterTeardown = await local.awsClients.ssm.getParametersByPath({
+        Path: path,
+      })
 
       assertThat(parametersAfterTeardown.Parameters).is([])
     })
   })
-
 })

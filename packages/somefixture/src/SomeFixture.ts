@@ -1,8 +1,7 @@
 import * as uuid from "uuid"
 
 export class SomeFixture {
-  constructor(private uniqueNumber: number) {
-  }
+  constructor(private uniqueNumber: number) {}
 
   someUuid(): string {
     return uuid.v4()

@@ -4,9 +4,8 @@ import { DeleteTableCommand } from "@aws-sdk/client-dynamodb"
 import { ListTablesCommand } from "@aws-sdk/client-dynamodb"
 import { CreateTableInput } from "@aws-sdk/client-dynamodb"
 import { Given } from "@chrysalis-it/testamatic"
-import {someFixture} from "@chrysalis-it/some-fixture";
 
-export type TableDefinition = CreateTableInput & { TableName: string };
+export type TableDefinition = CreateTableInput & { TableName: string }
 
 export class DynamoTableSetup implements Given {
   constructor(
@@ -37,7 +36,11 @@ export class DynamoTableSetup implements Given {
   }
 }
 
-export const simpleTableDefinitionMaker = (tableName: string = "dynamoTableForTesting", pkName: string = "PK", skName = "SK"): TableDefinition => ({
+export const simpleTableDefinitionMaker = (
+  tableName = "dynamoTableForTesting",
+  pkName = "PK",
+  skName = "SK",
+): TableDefinition => ({
   TableName: tableName,
   KeySchema: [
     {

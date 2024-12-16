@@ -1,31 +1,27 @@
-import {Thespian, TMocked} from "thespian";
-import {assertThat} from "mismatched";
-import {DynamoTableSetup} from "./DynamoTableSetup";
-import {local} from "@chrysalis-it/testamatic";
-import {dynamoWhenDeltaConfigMaker} from "./dynamoWhenDeltaConfigMaker";
-import {PutCommand} from "@aws-sdk/lib-dynamodb";
-import {DynamoRow} from "./dynamoWhenDeltaConfigMaker";
-import {someFixture} from "@chrysalis-it/some-fixture";
-import {match} from "mismatched";
-import {simpleTableDefinitionMaker} from "./DynamoTableSetup";
+import { assertThat } from "mismatched"
+import { match } from "mismatched"
+import { DynamoTableSetup } from "./DynamoTableSetup"
+import { simpleTableDefinitionMaker } from "./DynamoTableSetup"
+import { local } from "@chrysalis-it/testamatic"
+import { dynamoWhenDeltaConfigMaker } from "./dynamoWhenDeltaConfigMaker"
+import { DynamoRow } from "./dynamoWhenDeltaConfigMaker"
+import { PutCommand } from "@aws-sdk/lib-dynamodb"
+import { someFixture } from "@chrysalis-it/some-fixture"
 
 describe("dynamoWhenDeltaConfigMaker.integration", () => {
-  const TABLE_NAME = "testTableName";
-  const dynamoTableSetup = new DynamoTableSetup(local.awsClients.dynamo, simpleTableDefinitionMaker(TABLE_NAME));
+  const TABLE_NAME = "testTableName"
+  const dynamoTableSetup = new DynamoTableSetup(local.awsClients.dynamo, simpleTableDefinitionMaker(TABLE_NAME))
   const whenDeltaConfig = dynamoWhenDeltaConfigMaker(local.awsClients.dynamo, TABLE_NAME)
 
-
-
-  beforeAll(async () => await dynamoTableSetup.setup());
-  afterAll(async () => await dynamoTableSetup.teardown());
-
+  beforeAll(async () => await dynamoTableSetup.setup())
+  afterAll(async () => await dynamoTableSetup.teardown())
 
   describe("snapshot", () => {
     it("when no rows", async () => {
       const whenDeltaConfig = dynamoWhenDeltaConfigMaker(local.awsClients.dynamo, TABLE_NAME)
       const snapshot = await whenDeltaConfig.snapshot()
-      assertThat(snapshot).is([]);
-    });
+      assertThat(snapshot).is([])
+    })
     it("when rows exist", async () => {
       const whenDeltaConfig = dynamoWhenDeltaConfigMaker(local.awsClients.dynamo, TABLE_NAME)
 
@@ -58,17 +54,13 @@ describe("dynamoWhenDeltaConfigMaker.integration", () => {
       )
 
       const snapshot = await whenDeltaConfig.snapshot()
-      assertThat(snapshot).is(expectedDynamoRows);
-    });
+      assertThat(snapshot).is(expectedDynamoRows)
+    })
   })
 
-
-
   describe("delta", () => {
-
     describe("when no rows before", () => {
       it("and none added", async () => {
-
         //given
         const snapshot = await whenDeltaConfig.snapshot()
 
@@ -76,11 +68,10 @@ describe("dynamoWhenDeltaConfigMaker.integration", () => {
         const delta = await whenDeltaConfig.diff(snapshot)
 
         //then
-        assertThat(delta).is([]);
-      });
+        assertThat(delta).is([])
+      })
 
       it("and rows added", async () => {
-
         //given
         const before = await whenDeltaConfig.snapshot()
         console.log(JSON.stringify(before))
@@ -93,8 +84,8 @@ describe("dynamoWhenDeltaConfigMaker.integration", () => {
 
         console.log(JSON.stringify(delta))
 
-        assertThat(delta).is(match.array.unordered(expectedDelta));
-      });
+        assertThat(delta).is(match.array.unordered(expectedDelta))
+      })
     })
 
     describe("when rows before", () => {
@@ -107,8 +98,8 @@ describe("dynamoWhenDeltaConfigMaker.integration", () => {
         const delta = await whenDeltaConfig.diff(snapshot)
 
         //then
-        assertThat(delta).is(match.array.unordered([]));
-      });
+        assertThat(delta).is(match.array.unordered([]))
+      })
 
       it("and rows added", async () => {
         //given
@@ -120,16 +111,15 @@ describe("dynamoWhenDeltaConfigMaker.integration", () => {
         const delta = await whenDeltaConfig.diff(snapshot)
 
         //then
-        assertThat(delta).is(match.array.unordered(rowsAdded));
-      });
+        assertThat(delta).is(match.array.unordered(rowsAdded))
+      })
     })
   })
-
-});
+})
 
 type DynamoColumns = { col1: string; col2: string }
 
-const createTwoRows = async (table_name: string)=> {
+const createTwoRows = async (table_name: string) => {
   const expectedDynamoRows: DynamoRow<DynamoColumns>[] = [
     {
       PK: someFixture.someUniqueString("PK"),

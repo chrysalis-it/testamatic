@@ -1,5 +1,5 @@
 import { WhenDeltaConfig } from "@chrysalis-it/testamatic"
-import {DynamoDBDocumentClient, ScanCommand} from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb"
 
 export type DynamoID = {
   PK: string

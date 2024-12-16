@@ -1,8 +1,8 @@
 import { isAxiosError } from "axios"
 import { assertThat, match } from "mismatched"
 import { createAxiosInstance } from "./axiosInstanceMaker"
-import {koaMockServerTcpListenerFactory, MockHttpServer, MockHttpServerExpectation} from "../mockHttpServer";
-import {logger} from "../logger/Logger";
+import { koaMockServerTcpListenerFactory, MockHttpServer, MockHttpServerExpectation } from "../mockHttpServer"
+import { logger } from "../logger/Logger"
 
 describe("axiosInstanceMaker.integration", () => {
   let mockServer: MockHttpServer
@@ -22,8 +22,7 @@ describe("axiosInstanceMaker.integration", () => {
   })
 
   beforeEach(async () => {
-
-    mockServer = new MockHttpServer<"someServer", "SomeEnvKey">(
+    ;(mockServer = new MockHttpServer<"someServer", "SomeEnvKey">(
       "someServer",
       "SomeEnvKey",
       koaMockServerTcpListenerFactory,
@@ -31,10 +30,9 @@ describe("axiosInstanceMaker.integration", () => {
         host: "localhost",
         protocol: "http",
       },
-    ),
-    await mockServer.listen()
-    mockServerBaseUrl = `${mockServer.getEnvEntries()["SomeEnvKey"]}`;
-
+    )),
+      await mockServer.listen()
+    mockServerBaseUrl = `${mockServer.getEnvEntries()["SomeEnvKey"]}`
   })
 
   afterEach(async () => {

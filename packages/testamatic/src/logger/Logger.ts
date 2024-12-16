@@ -1,3 +1,3 @@
-import {makePinoLogger} from "./pino.logger";
+import { makePinoLogger } from "./pino.logger"
 
 export const logger = makePinoLogger()

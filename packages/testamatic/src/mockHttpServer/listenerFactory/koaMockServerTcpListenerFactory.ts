@@ -5,20 +5,13 @@ import { mockHttpServerExpectationMatchesRequest, RequestMatchInfo } from "../Mo
 import { isFunction } from "util"
 import { PrettyPrinter } from "mismatched"
 import { MockConfig, MockTcpListenerFactory } from "../MockHttpServer"
-import {ServerStarter, tcpListenerFactory} from "./tcpListenerFactory"
+import { ServerStarter, tcpListenerFactory } from "./tcpListenerFactory"
 import { TCPConfig } from "../../tcp/tcp.types"
 
-
-
 export const koaMockServerTcpListenerFactory: MockTcpListenerFactory = (mockConfig: MockConfig, tcpConfig: TCPConfig) =>
-  tcpListenerFactory(
-    tcpConfig,
-    koaServerStarterMaker(mockConfig),
-    `${mockConfig.mockServerName} mock server`,
-  )
+  tcpListenerFactory(tcpConfig, koaServerStarterMaker(mockConfig), `${mockConfig.mockServerName} mock server`)
 
-
-const koaServerStarterMaker  = (mockConfig: MockConfig): ServerStarter => {
+const koaServerStarterMaker = (mockConfig: MockConfig): ServerStarter => {
   const koa = new Koa()
   const middlewares = [sslify({ resolver: () => true }), bodyParser(), reqHandlerMaker(mockConfig)]
   middlewares.forEach((middleWare) => koa.use(middleWare))
@@ -72,4 +65,3 @@ const reqHandlerMaker = (mockConfig: MockConfig) => async (koaCtx: Koa.Context) 
   const { body, status, statusText, headers } = koaCtx
   console.info(`Mock Server Sending Response`, { status, statusText, headers, body })
 }
-

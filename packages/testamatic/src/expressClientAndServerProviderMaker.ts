@@ -3,13 +3,13 @@ import { ClientAndServer } from "./configureIntegrationTestCtxFactory"
 import { RestClient } from "typed-rest-client"
 import { restClientMaker } from "./restClientMaker"
 import { ServerStarter, tcpListenerFactory } from "./mockHttpServer/listenerFactory/tcpListenerFactory"
+import { ListenerConfig } from "./mockHttpServer/listenerFactory/tcpListenerFactory"
 
 export const expressClientAndServerProviderMaker =
-  <ENVKEYS extends string>(
+  (
     serverStarterProvider: () => ServerStarter,
-    tcpConfig: TCPConfig = {
+    tcpConfig: ListenerConfig = {
       port: 9999,
-      host: "localhost",
       protocol: "http",
     },
   ) =>

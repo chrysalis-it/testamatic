@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from "axios"
 import axiosRetry, { IAxiosRetryConfig } from "axios-retry"
 import { isNativeError } from "util/types"
-import {StructuredLogger} from "../logger/StructuredLogger";
+import { StructuredLogger } from "../logger/StructuredLogger"
 
 export type RetryConfig = Pick<IAxiosRetryConfig, "retries" | "retryDelay">
 

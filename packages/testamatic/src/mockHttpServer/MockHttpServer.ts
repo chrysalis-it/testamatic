@@ -5,8 +5,8 @@ import {
   mockHttpServerExpectationMatchesRequest,
   RequestMatchInfo,
 } from "./MockHttpExpectation"
-import {TCPConfig, TcpListener} from "../tcp/tcp.types"
-import {tcpConfigUrlMaker} from "../tcp/tcpConfigUrlMaker";
+import { TCPConfig, TcpListener } from "../tcp/tcp.types"
+import { tcpConfigUrlMaker } from "../tcp/tcpConfigUrlMaker"
 
 export type MockTcpListenerFactory = (mockConfig: MockConfig, tcpConfig: TCPConfig) => Promise<TcpListener>
 
@@ -16,7 +16,7 @@ export interface MockHttpServerFailure {
   diff?: unknown
 }
 
-export class MockHttpServer<MOCKSERVERNAMES extends string = any, ENVKEYS extends string = any> {
+export class MockHttpServer<MOCKSERVERNAMES extends string = string, ENVKEYS extends string = string> {
   private static nextServerPort = 9900
   private tcpCfg: TCPConfig
   private tcpListener: TcpListener | undefined = undefined
@@ -103,7 +103,6 @@ export class MockHttpServer<MOCKSERVERNAMES extends string = any, ENVKEYS extend
     }
   }
 }
-
 
 export type MockConfig = {
   mockServerName: string

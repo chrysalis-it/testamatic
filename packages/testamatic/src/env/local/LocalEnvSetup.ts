@@ -1,7 +1,7 @@
 import { EnvSetup } from "../../configureIntegrationTestCtxFactory"
 import { EnvVars } from "../../IntegrationTestCtx"
-import * as process from "process";
-import {logger} from "../../logger/Logger";
+import * as process from "process"
+import { logger } from "../../logger/Logger"
 
 export class LocalEnvSetup<ENVKEYS extends string> implements EnvSetup<ENVKEYS> {
   private envToTeardown: EnvVars<ENVKEYS> | undefined

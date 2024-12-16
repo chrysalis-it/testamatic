@@ -11,6 +11,6 @@ export function createEventBridgeEvent<T extends string, E>(detailType: T, data:
     resources: [someFixture.someUniqueString("someResource")],
     source: someFixture.someUniqueString("resource"),
     "detail-type": detailType,
-    detail: data
+    detail: data,
   }
 }

@@ -1,9 +1,8 @@
-import {promises} from "promises-arrow"
-import {logger} from "../../logger/Logger"
-import {EnvSetup} from "../../configureIntegrationTestCtxFactory"
-import {EnvVars} from "../../IntegrationTestCtx"
-import {DeleteParameterResult} from "@aws-sdk/client-ssm";
-import {SSM, PutParameterRequest} from "@aws-sdk/client-ssm";
+import { promises } from "promises-arrow"
+import { logger } from "../../logger/Logger"
+import { EnvSetup } from "../../configureIntegrationTestCtxFactory"
+import { EnvVars } from "../../IntegrationTestCtx"
+import { PutParameterRequest, SSM } from "@aws-sdk/client-ssm"
 
 export class ParamStoreEnvSetup<ENVKEYS extends string> implements EnvSetup<ENVKEYS> {
   private paramsToTeardown: PutParameterRequest[] = []
@@ -11,21 +10,17 @@ export class ParamStoreEnvSetup<ENVKEYS extends string> implements EnvSetup<ENVK
   constructor(
     private pstorePath: string,
     private ssm: SSM,
-  ) {
-  }
+  ) {}
 
   public async setup(env: EnvVars<ENVKEYS>): Promise<void> {
-    logger.debug("Calling ParamStoreEnvSetup.setup", {env})
-    const pstorePutRequests: PutParameterRequest[] = Object.entries(env).map((envVar) =>
-      ({
-        Name: `${this.pstorePath}/${envVar[0]}`,
-        Value: envVar[1] as string, // TODO remove casting
-        Type: "String", // TODO do we need to handle encrypted
-        Overwrite: true,
-      })
-    )
+    logger.debug("Calling ParamStoreEnvSetup.setup", { env })
+    const pstorePutRequests: PutParameterRequest[] = Object.entries(env).map((envVar) => ({
+      Name: `${this.pstorePath}/${envVar[0]}`,
+      Value: envVar[1] as string, // TODO remove casting
+      Type: "String", // TODO do we need to handle encrypted
+      Overwrite: true,
+    }))
     await promises.map(pstorePutRequests, this.setupOne)
-
   }
 
   public async teardown(): Promise<void> {
@@ -36,9 +31,9 @@ export class ParamStoreEnvSetup<ENVKEYS extends string> implements EnvSetup<ENVK
     return this.ssm
       .putParameter(pstorePutRequest)
       .then(() => this.paramsToTeardown.push(pstorePutRequest))
-      .then(() => logger.info(`Parameter added`, {name: pstorePutRequest.Name, value: pstorePutRequest.Value}))
+      .then(() => logger.info(`Parameter added`, { name: pstorePutRequest.Name, value: pstorePutRequest.Value }))
       .catch((err) => {
-        logger.info(`Error creating parameter`, {name: pstorePutRequest.Name, error: err})
+        logger.info(`Error creating parameter`, { name: pstorePutRequest.Name, error: err })
         throw err
       })
   }

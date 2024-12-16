@@ -1,4 +1,5 @@
 import { assertThat } from "mismatched"
+import { match } from "mismatched"
 import express, { Router as ExRouter } from "express"
 import { RestClient } from "typed-rest-client"
 import {
@@ -13,11 +14,9 @@ import {
 import { PutCommand } from "@aws-sdk/lib-dynamodb"
 
 import { DynamoRow, DynamoTableSetup, dynamoWhenDeltaConfigMaker } from "@chrysalis-it/testamatic-dynamo"
-import {match} from "mismatched";
-import {simpleTableDefinitionMaker} from "@chrysalis-it/testamatic-dynamo";
+import { simpleTableDefinitionMaker } from "@chrysalis-it/testamatic-dynamo"
 
 type SomeEnvKeys = "EnvKeyOne" | "EnvKeyTwo"
-type SomeMockServerNames = "HttpMockServer1" | "HttpMockServer2" | "HttpMockServer3"
 
 type DynamoColumns = { col1: string; col2: string }
 type WHENDELTA = DynamoRow<DynamoColumns>[]
@@ -25,6 +24,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
   describe("test runs with dynamo config", () => {
     const url = "/"
     const expectedResponse = "yes I am alive AND LIFE IS GOOD!"
+
     const simpleAppProvider = (): ServerStarter => {
       const app = express()
       const router = ExRouter()

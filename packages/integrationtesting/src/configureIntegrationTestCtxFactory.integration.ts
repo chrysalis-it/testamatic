@@ -12,9 +12,10 @@ import {
   expressClientAndServerProviderMaker,
   koaMockServerTcpListenerFactory,
   LocalEnvSetup,
-  MockHttpServer, ServerStarter,
+  MockHttpServer,
+  ServerStarter,
 } from "@chrysalis-it/testamatic"
-import {createAxiosInstance} from "@chrysalis-it/testamatic/dist/axios/axiosInstanceMaker";
+import { createAxiosInstance } from "@chrysalis-it/testamatic"
 
 type SomeEnvKeys = "EnvKeyOne" | "EnvKeyTwo"
 type SomeMockServerNames = "HttpMockServer1" | "HttpMockServer2" | "HttpMockServer3"
@@ -93,7 +94,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
         },
         {
           snapshot: () => Promise.resolve({ value: 1 }),
-          diff: (first?: { value: number }) => Promise.resolve(expectedDelta),
+          diff: () => Promise.resolve(expectedDelta),
         },
       )
       const ctx = await testCtx()
@@ -120,10 +121,8 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
       it("with no expectation and no calls", async () => {
         const simpleAppWithOnedependantCallMaker = (): ServerStarter => {
           // get env
-          const env = process.env as EnvVars<SomeEnvKeys>
-          // compose app that calls mocked service
-          const dependencyUrl = env["EnvKeyOne"]
 
+          // compose app that calls mocked service
           const app = express()
           const router = ExRouter()
           router.get(url, async (req, res) => {
@@ -259,7 +258,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
           // compose app that calls mocked service
           const dependencyUrl = env["EnvKeyOne"]
           const axiosClient = axios.create({
-            validateStatus: (status) => true,
+            validateStatus: () => true,
             timeout: 1000,
           })
           const app = express()
@@ -300,7 +299,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
         await testCtx.each.before()
 
         try {
-          const whenResponse = await testCtx.when(() =>
+          await testCtx.when(() =>
             testCtx.api.client().get<{
               serverResponse: string
               mockResponse: string
@@ -326,11 +325,6 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
       })
       it("with expectation that is not satisfied", async () => {
         const simpleAppWithOnedependantCallMaker = (): ServerStarter => {
-          // get env
-          const env = process.env as EnvVars<SomeEnvKeys>
-          // compose app that calls mocked service
-          const dependencyUrl = env["EnvKeyOne"]
-
           const app = express()
           const router = ExRouter()
           router.get(url, async (req, res) => {
@@ -380,7 +374,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
         })
 
         try {
-          const whenResponse = await testCtx.when(() =>
+          await testCtx.when(() =>
             testCtx.api.client().get<{
               serverResponse: string
               mockResponse: string

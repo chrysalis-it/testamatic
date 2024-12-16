@@ -4,8 +4,8 @@ import { PrettyPrinter } from "mismatched"
 import { MockConfig, MockTcpListenerFactory } from "../MockHttpServer"
 import { TCPConfig } from "../../tcp/tcp.types"
 import express, { Handler } from "express"
-import {tcpListenerFactory} from "./tcpListenerFactory";
-import http from "http";
+import { tcpListenerFactory } from "./tcpListenerFactory"
+import http from "http"
 
 export const expressMockServerTcpListenerFactory: MockTcpListenerFactory = (
   mockConfig: MockConfig,
@@ -71,12 +71,10 @@ const expressHandlerMaker =
 
     const body = isFunction(applicableExpectation.response.body)
       ? (applicableExpectation.response.body as (req: unknown) => unknown)(reqInfo)
-      : applicableExpectation.response.body;
+      : applicableExpectation.response.body
 
-    const { status, statusMessage, header } = response
+    const { status, statusMessage } = response
     console.info(`Mock Server Sending Response`, { status, statusMessage, body })
 
-    return response.json(
-      body,
-    )
+    return response.json(body)
   }

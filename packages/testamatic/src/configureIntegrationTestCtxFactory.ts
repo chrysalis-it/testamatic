@@ -22,8 +22,8 @@ export interface Given {
   setup(): Promise<void>
 }
 
-export type ClientAndServer<Client extends object = object> = { client: RestClient, close: () => Promise<void> }
-export type ClientAndServerProvider<ENVKEYS extends string, CLIENT extends object = object> = (
+export type ClientAndServer<APICLIENT extends object = RestClient> = { client: APICLIENT; close: () => Promise<void> }
+export type ClientAndServerProvider<ENVKEYS extends string, CLIENT extends object = RestClient> = (
   env: EnvVars<ENVKEYS>,
 ) => Promise<ClientAndServer<CLIENT>>
 
@@ -33,25 +33,25 @@ export type EnvConfig<ENVKEYS extends string> = {
 }
 
 export const configureIntegrationTestCtxProvider = <
-  ENVKEYS extends string = "",
-  MOCKSERVERNAMES extends string = "",
-  WHENDELTA extends object = {},
-  CLIENT extends object = RestClient,
+  ENVKEYS extends string = string,
+  MOCKSERVERNAMES extends string = string,
+  WHENDELTA extends object = object,
+  APICLIENT extends object = RestClient,
 >(
-  clientAndServerProvider: ClientAndServerProvider<ENVKEYS, CLIENT>,
+  clientAndServerProvider: ClientAndServerProvider<ENVKEYS, APICLIENT>,
   envConfig: EnvConfig<ENVKEYS> = nullEnvConfig,
-  whenDeltaConfig?: WhenDeltaConfig<WHENDELTA> ,
+  whenDeltaConfig?: WhenDeltaConfig<WHENDELTA>,
   mockHttpServers: MockHttpServer<MOCKSERVERNAMES, ENVKEYS>[] = [],
   beforeAll: Given[] = [],
   beforeEach: Given[] = [],
-): IntegrationTestCtxProvider<ENVKEYS, MOCKSERVERNAMES, WHENDELTA> => {
+): IntegrationTestCtxProvider<ENVKEYS, MOCKSERVERNAMES, WHENDELTA, APICLIENT> => {
   return async () => {
     const env = envMaker(envConfig.defaultEnv, mockHttpServers)
     await envConfig.envSetup.teardown()
     await envConfig.envSetup.setup(env)
 
     // Only setup once, might want to re-create before each test
-    const clientAndServerPromise: Promise<ClientAndServer<CLIENT>> = clientAndServerProvider(env)
+    const clientAndServerPromise: Promise<ClientAndServer<APICLIENT>> = clientAndServerProvider(env)
 
     return {
       env: env,
@@ -59,7 +59,7 @@ export const configureIntegrationTestCtxProvider = <
       each: beforeAndAfterEachMaker(mockHttpServers, beforeEach),
       httpMock: mockServersMaker(mockHttpServers),
       api: await apiMaker(clientAndServerPromise),
-      when: whenMaker<ENVKEYS, WHENDELTA>(env, mockHttpServers, clientAndServerPromise, whenDeltaConfig),
+      when: whenMaker<ENVKEYS, WHENDELTA, APICLIENT>(env, mockHttpServers, clientAndServerPromise, whenDeltaConfig),
     }
   }
 }
@@ -73,7 +73,8 @@ export type IntegrationTestCtxProvider<
   ENVKEYS extends string,
   MOCKSERVERNAMES extends string,
   WHENDELTA extends object,
-> = () => Promise<IntegrationTestCtx<ENVKEYS, MOCKSERVERNAMES, WHENDELTA>>
+  APICLIENT extends object,
+> = () => Promise<IntegrationTestCtx<ENVKEYS, MOCKSERVERNAMES, WHENDELTA, APICLIENT>>
 
 const envMaker = <ENVKEYS extends string, MOCKSERVERNAMES extends string>(
   defaultEnv: EnvVars<ENVKEYS>,
@@ -93,10 +94,10 @@ const mockServersMaker = <MOCKSERVERNAMES extends string, ENVKEYS extends string
   },
 })
 
-const beforeAndAfterAllMaker = (
+const beforeAndAfterAllMaker = <APICLIENT extends object>(
   mockHttpServers: MockHttpServer[],
   beforeAll: Given[],
-  clientAndServerPromise?: Promise<ClientAndServer>,
+  clientAndServerPromise?: Promise<ClientAndServer<APICLIENT>>,
 ): BeforeAndAfter => ({
   before: async () => {
     logger.debug("ctx.beforeAll started")
@@ -107,7 +108,7 @@ const beforeAndAfterAllMaker = (
   },
   after: async () => {
     logger.debug("ctx.afterAll started")
-    !clientAndServerPromise || await clientAndServerPromise.then((clientAndServer) => clientAndServer.close())
+    !clientAndServerPromise || (await clientAndServerPromise.then((clientAndServer) => clientAndServer.close()))
     await Promise.all([mockHttpServers.map((x) => x.close())])
     logger.debug("ctx.afterAll complete")
   },
@@ -126,31 +127,33 @@ const beforeAndAfterEachMaker = (mockHttpServers: MockHttpServer[], beforeEach: 
   },
 })
 
-const apiMaker = (clientAndServerPromise: Promise<ClientAndServer>): Promise<API> => {
+const apiMaker = <APICLIENT extends object>(
+  clientAndServerPromise: Promise<ClientAndServer<APICLIENT>>,
+): Promise<API<APICLIENT>> => {
   return clientAndServerPromise.then((clientAndServer) => ({
     client: () => clientAndServer.client,
   }))
 }
 
 const whenMaker =
-  <ENVKEYS extends string, WHENDELTA extends object>(
+  <ENVKEYS extends string, WHENDELTA extends object, APICLIENT extends object>(
     env: EnvVars<ENVKEYS>,
     mockHttpServers: MockHttpServer[],
-    clientAndServerPromise: Promise<ClientAndServer>,
-    whenDeltaConfig?: WhenDeltaConfig<WHENDELTA> ,
+    clientAndServerPromise: Promise<ClientAndServer<APICLIENT>>,
+    whenDeltaConfig?: WhenDeltaConfig<WHENDELTA>,
   ) =>
   async <RES>(isExecuted: IsExecuted<RES>): Promise<WHENRESPONSE<RES, WHENDELTA>> => {
     try {
       await clientAndServerPromise
-      const before = whenDeltaConfig ? await whenDeltaConfig.snapshot() : {} as WHENDELTA  // TODO PJ
+      const before = whenDeltaConfig ? await whenDeltaConfig.snapshot() : ({} as WHENDELTA) // TODO PJ
       logger.info("When started", { env: env, beforeSnapshot: before })
       const response = await isExecuted()
       const rtn = {
         response: response,
-        delta: whenDeltaConfig ? await whenDeltaConfig.diff(before) : {} as WHENDELTA, // TODO PJ
-      };
+        delta: whenDeltaConfig ? await whenDeltaConfig.diff(before) : ({} as WHENDELTA), // TODO PJ
+      }
       logger.info("When execution complete", rtn)
-      return rtn 
+      return rtn
     } catch (e) {
       logger.error(`Error in WHEN`, e)
       throw e
@@ -159,11 +162,10 @@ const whenMaker =
     }
   }
 
-
-const nullEnvConfig: EnvConfig<any> = {
+const nullEnvConfig: EnvConfig<string> = {
   defaultEnv: {},
   envSetup: {
-    setup: (env) => Promise.resolve(undefined),
+    setup: () => Promise.resolve(undefined),
     teardown: () => Promise.resolve(undefined),
   },
 }

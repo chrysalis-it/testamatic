@@ -3,6 +3,7 @@ import { local } from "../../test/local"
 import { ParamStoreEnvSetup } from "./ParameterStoreEnvSetup"
 import { EnvVars } from "../../IntegrationTestCtx"
 import { someFixture } from "@chrysalis-it/some-fixture"
+import {consoleLogger} from "../../logger/console/consoleLogger";
 
 type EnvKeys = "pstoreVarName"
 
@@ -15,7 +16,7 @@ describe("ParameterStoreSetup.integration.ts", () => {
     it("setup and teardown one string var", async () => {
       const path = `/some/${someFixture.someUniqueString("unique")}/pstore/path`
 
-      const setup = new ParamStoreEnvSetup(path, local.awsClients.ssm)
+      const setup = new ParamStoreEnvSetup(path, local.awsClients.ssm, consoleLogger)
 
       await setup.setup(env)
 

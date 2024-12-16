@@ -5,9 +5,9 @@ import { RestClient } from "typed-rest-client"
 import {
   ClientAndServerProvider,
   configureIntegrationTestCtxProvider,
-  expressClientAndServerProviderMaker,
   local,
   LocalEnvSetup,
+  restClientAndExpressServerProviderMaker,
   ServerStarter,
 } from "@chrysalis-it/testamatic"
 
@@ -15,6 +15,7 @@ import { PutCommand } from "@aws-sdk/lib-dynamodb"
 
 import { DynamoRow, DynamoTableSetup, dynamoWhenDeltaConfigMaker } from "@chrysalis-it/testamatic-dynamo"
 import { simpleTableDefinitionMaker } from "@chrysalis-it/testamatic-dynamo"
+import { consoleLogger } from "./logger/console/consoleLogger"
 
 type SomeEnvKeys = "EnvKeyOne" | "EnvKeyTwo"
 
@@ -37,7 +38,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
 
     it("with dynamo when delta", async () => {
       const clientAndServerProvider: ClientAndServerProvider<SomeEnvKeys, RestClient> =
-        expressClientAndServerProviderMaker(simpleAppProvider)
+        restClientAndExpressServerProviderMaker(simpleAppProvider, "Test", consoleLogger)
 
       const dynamoTestTableName = "dynamoTestTableName"
       const expectedDynamoRows: DynamoRow<DynamoColumns>[] = [
@@ -57,12 +58,13 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
 
       const testCtx = configureIntegrationTestCtxProvider<SomeEnvKeys, string, WHENDELTA>(
         clientAndServerProvider,
+        consoleLogger,
         {
           defaultEnv: {
             EnvKeyOne: "EnvValueOne",
             EnvKeyTwo: "EnvValueTwo",
           },
-          envSetup: new LocalEnvSetup(),
+          envSetup: new LocalEnvSetup(consoleLogger),
         },
         dynamoWhenDeltaConfigMaker<DynamoColumns>(local.awsClients.dynamo, dynamoTestTableName),
         [],

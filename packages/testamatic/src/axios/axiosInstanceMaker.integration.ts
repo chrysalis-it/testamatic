@@ -2,7 +2,7 @@ import { isAxiosError } from "axios"
 import { assertThat, match } from "mismatched"
 import { createAxiosInstance } from "./axiosInstanceMaker"
 import { koaMockServerTcpListenerFactory, MockHttpServer, MockHttpServerExpectation } from "../mockHttpServer"
-import { logger } from "../logger/Logger"
+import { consoleLogger } from "../logger/console/consoleLogger"
 
 describe("axiosInstanceMaker.integration", () => {
   let mockServer: MockHttpServer
@@ -22,16 +22,18 @@ describe("axiosInstanceMaker.integration", () => {
   })
 
   beforeEach(async () => {
-    ;(mockServer = new MockHttpServer<"someServer", "SomeEnvKey">(
+    mockServer = new MockHttpServer<"someServer", "SomeEnvKey">(
       "someServer",
       "SomeEnvKey",
       koaMockServerTcpListenerFactory,
       {
         host: "localhost",
         protocol: "http",
+        port: 9111,
       },
-    )),
-      await mockServer.listen()
+      consoleLogger,
+    )
+    await mockServer.listen()
     mockServerBaseUrl = `${mockServer.getEnvEntries()["SomeEnvKey"]}`
   })
 
@@ -41,7 +43,7 @@ describe("axiosInstanceMaker.integration", () => {
   })
 
   describe("configured with one retry", () => {
-    const axios = createAxiosInstance("axiosTest", logger, {
+    const axios = createAxiosInstance("axiosTest", consoleLogger, {
       retries: 1,
       retryDelay: () => 1,
     })

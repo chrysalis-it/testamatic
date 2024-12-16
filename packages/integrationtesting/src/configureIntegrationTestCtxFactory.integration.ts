@@ -4,18 +4,19 @@ import { RestClient } from "typed-rest-client"
 import * as process from "process"
 import axios from "axios"
 import * as util from "util"
-import { logger } from "./logger/Logger"
 import {
   ClientAndServerProvider,
   configureIntegrationTestCtxProvider,
   EnvVars,
-  expressClientAndServerProviderMaker,
   koaMockServerTcpListenerFactory,
   LocalEnvSetup,
   MockHttpServer,
+  restClientAndExpressServerProviderMaker,
   ServerStarter,
 } from "@chrysalis-it/testamatic"
 import { createAxiosInstance } from "@chrysalis-it/testamatic"
+import { logger } from "./logger/logger"
+import { consoleLogger } from "./logger/console/consoleLogger"
 
 type SomeEnvKeys = "EnvKeyOne" | "EnvKeyTwo"
 type SomeMockServerNames = "HttpMockServer1" | "HttpMockServer2" | "HttpMockServer3"
@@ -38,8 +39,8 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
 
     it("server config only", async () => {
       const clientAndServerProvider: ClientAndServerProvider<SomeEnvKeys, RestClient> =
-        expressClientAndServerProviderMaker(simpleAppProvider)
-      const testCtx = configureIntegrationTestCtxProvider(clientAndServerProvider)
+        restClientAndExpressServerProviderMaker(simpleAppProvider, "Test", consoleLogger)
+      const testCtx = configureIntegrationTestCtxProvider(clientAndServerProvider, consoleLogger)
 
       const ctx = await testCtx()
 
@@ -56,14 +57,14 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
     })
     it("server config and env config", async () => {
       const clientAndServerProvider: ClientAndServerProvider<SomeEnvKeys, RestClient> =
-        expressClientAndServerProviderMaker(simpleAppProvider)
+        restClientAndExpressServerProviderMaker(simpleAppProvider, "Test", consoleLogger)
 
-      const testCtx = configureIntegrationTestCtxProvider<SomeEnvKeys>(clientAndServerProvider, {
+      const testCtx = configureIntegrationTestCtxProvider<SomeEnvKeys>(clientAndServerProvider, consoleLogger, {
         defaultEnv: {
           EnvKeyOne: "EnvValueOne",
           EnvKeyTwo: "EnvValueTwo",
         },
-        envSetup: new LocalEnvSetup(),
+        envSetup: new LocalEnvSetup(consoleLogger),
       })
       const ctx = await testCtx()
 
@@ -80,17 +81,18 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
     })
     it("server config and env config and when delta", async () => {
       const clientAndServerProvider: ClientAndServerProvider<SomeEnvKeys, RestClient> =
-        expressClientAndServerProviderMaker(simpleAppProvider)
+        restClientAndExpressServerProviderMaker(simpleAppProvider, "Test", consoleLogger)
 
       const expectedDelta = { value: 2 }
       const testCtx = configureIntegrationTestCtxProvider<SomeEnvKeys, string, { value: number }>(
         clientAndServerProvider,
+        consoleLogger,
         {
           defaultEnv: {
             EnvKeyOne: "EnvValueOne",
             EnvKeyTwo: "EnvValueTwo",
           },
-          envSetup: new LocalEnvSetup(),
+          envSetup: new LocalEnvSetup(consoleLogger),
         },
         {
           snapshot: () => Promise.resolve({ value: 1 }),
@@ -133,13 +135,14 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
         }
 
         const testCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
-          expressClientAndServerProviderMaker(simpleAppWithOnedependantCallMaker),
+          restClientAndExpressServerProviderMaker(simpleAppWithOnedependantCallMaker, "Test", consoleLogger),
+          consoleLogger,
           {
             defaultEnv: {
               EnvKeyOne: "EnvValueOne",
               EnvKeyTwo: "EnvValueTwo",
             },
-            envSetup: new LocalEnvSetup(),
+            envSetup: new LocalEnvSetup(consoleLogger),
           },
           undefined,
           [
@@ -150,7 +153,9 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
               {
                 host: "localhost",
                 protocol: "http",
+                port: 9999,
               },
+              consoleLogger,
             ),
           ],
         )
@@ -178,7 +183,6 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
       })
       it("with expectation that is satisfied", async () => {
         const simpleAppWithOneDependantCallMaker = (): ServerStarter => {
-          logger.info("Calling simpleAppWithOnedependantCallMaker")
           // get env
           const env = process.env as EnvVars<SomeEnvKeys>
           // compose app that calls mocked service
@@ -196,13 +200,14 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
         }
 
         const testCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
-          expressClientAndServerProviderMaker(simpleAppWithOneDependantCallMaker),
+          restClientAndExpressServerProviderMaker(simpleAppWithOneDependantCallMaker, "Test", consoleLogger),
+          consoleLogger,
           {
             defaultEnv: {
               EnvKeyOne: "EnvValueOne",
               EnvKeyTwo: "EnvValueTwo",
             },
-            envSetup: new LocalEnvSetup(),
+            envSetup: new LocalEnvSetup(consoleLogger),
           },
           undefined,
           [
@@ -213,7 +218,9 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
               {
                 host: "localhost",
                 protocol: "http",
+                port: 9999,
               },
+              consoleLogger,
             ),
           ],
         )
@@ -272,13 +279,14 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
         }
 
         const testCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
-          expressClientAndServerProviderMaker(simpleAppWithOnedependantCallMaker),
+          restClientAndExpressServerProviderMaker(simpleAppWithOnedependantCallMaker, "Test", consoleLogger),
+          consoleLogger,
           {
             defaultEnv: {
               EnvKeyOne: "EnvValueOne",
               EnvKeyTwo: "EnvValueTwo",
             },
-            envSetup: new LocalEnvSetup(),
+            envSetup: new LocalEnvSetup(consoleLogger),
           },
           undefined,
           [
@@ -289,7 +297,9 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
               {
                 host: "localhost",
                 protocol: "http",
+                port: 9999,
               },
+              consoleLogger,
             ),
           ],
         )
@@ -335,13 +345,14 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
         }
 
         const IntegrationTestCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
-          expressClientAndServerProviderMaker(simpleAppWithOnedependantCallMaker),
+          restClientAndExpressServerProviderMaker(simpleAppWithOnedependantCallMaker, "Test", consoleLogger),
+          consoleLogger,
           {
             defaultEnv: {
               EnvKeyOne: "EnvValueOne",
               EnvKeyTwo: "EnvValueTwo",
             },
-            envSetup: new LocalEnvSetup(),
+            envSetup: new LocalEnvSetup(consoleLogger),
           },
           undefined,
           [
@@ -352,7 +363,9 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
               {
                 host: "localhost",
                 protocol: "http",
+                port: 9999,
               },
+              consoleLogger,
             ),
           ],
         )

@@ -13,6 +13,7 @@ import {
 } from "./configureIntegrationTestCtxFactory"
 import { MockHttpServerExpectation } from "./mockHttpServer/MockHttpExpectation"
 import { someFixture } from "@chrysalis-it/some-fixture"
+import { consoleLogger } from "./logger/console/consoleLogger"
 
 type SomeEnvKeys = "EnvKey1" | "EnvKey2" | "EnvKey3" | "EnvKey4"
 type SomeEnvVars = { [key in SomeEnvKeys]: string }
@@ -70,6 +71,7 @@ describe("IntegrationTestCtx.micro", () => {
     it("configureIntegrationTestCtxProvider doesnt call anything", () => {
       testCtxFactory = configureIntegrationTestCtxProvider(
         clientAndServerProviderMock.object,
+        consoleLogger,
         {
           defaultEnv,
           envSetup: envSetupMock.object,
@@ -84,6 +86,7 @@ describe("IntegrationTestCtx.micro", () => {
     it("no mock servers", async () => {
       testCtxFactory = configureIntegrationTestCtxProvider(
         clientAndServerProviderMock.object,
+        consoleLogger,
         {
           defaultEnv,
           envSetup: envSetupMock.object,
@@ -130,6 +133,7 @@ describe("IntegrationTestCtx.micro", () => {
 
       testCtxFactory = configureIntegrationTestCtxProvider(
         clientAndServerProviderMock.object,
+        consoleLogger,
         {
           defaultEnv,
           envSetup: envSetupMock.object,
@@ -182,6 +186,7 @@ describe("IntegrationTestCtx.micro", () => {
           SomeWhenDelta
         >(
           clientAndServerProviderMock.object,
+          consoleLogger,
           {
             defaultEnv,
             envSetup: envSetupMock.object,
@@ -205,6 +210,7 @@ describe("IntegrationTestCtx.micro", () => {
 
         testCtxFactory = configureIntegrationTestCtxProvider(
           clientAndServerProviderMock.object,
+          consoleLogger,
           {
             defaultEnv,
             envSetup: envSetupMock.object,
@@ -243,6 +249,7 @@ describe("IntegrationTestCtx.micro", () => {
           SomeWhenDelta
         >(
           clientAndServerProviderMock.object,
+          consoleLogger,
           {
             defaultEnv,
             envSetup: envSetupMock.object,
@@ -266,6 +273,7 @@ describe("IntegrationTestCtx.micro", () => {
 
         testCtxFactory = configureIntegrationTestCtxProvider(
           clientAndServerProviderMock.object,
+          consoleLogger,
           {
             defaultEnv,
             envSetup: envSetupMock.object,
@@ -300,6 +308,7 @@ describe("IntegrationTestCtx.micro", () => {
 
       testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
         clientAndServerProviderMock.object,
+        consoleLogger,
         {
           defaultEnv,
           envSetup: envSetupMock.object,
@@ -329,6 +338,7 @@ describe("IntegrationTestCtx.micro", () => {
 
       testCtxFactory = configureIntegrationTestCtxProvider(
         clientAndServerProviderMock.object,
+        consoleLogger,
         {
           defaultEnv,
           envSetup: envSetupMock.object,
@@ -376,6 +386,7 @@ describe("IntegrationTestCtx.micro", () => {
 
         testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
           clientAndServerProviderMock.object,
+          consoleLogger,
           {
             defaultEnv,
             envSetup: envSetupMock.object,
@@ -399,6 +410,7 @@ describe("IntegrationTestCtx.micro", () => {
 
         testCtxFactory = configureIntegrationTestCtxProvider(
           clientAndServerProviderMock.object,
+          consoleLogger,
           {
             defaultEnv,
             envSetup: envSetupMock.object,
@@ -434,6 +446,7 @@ describe("IntegrationTestCtx.micro", () => {
 
         testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
           clientAndServerProviderMock.object,
+          consoleLogger,
           {
             defaultEnv,
             envSetup: envSetupMock.object,
@@ -458,6 +471,7 @@ describe("IntegrationTestCtx.micro", () => {
 
         testCtxFactory = configureIntegrationTestCtxProvider(
           clientAndServerProviderMock.object,
+          consoleLogger,
           {
             defaultEnv,
             envSetup: envSetupMock.object,
@@ -502,6 +516,7 @@ describe("IntegrationTestCtx.micro", () => {
 
       const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
         clientAndServerProviderMock.object,
+        consoleLogger,
         {
           defaultEnv,
           envSetup: envSetupMock.object,
@@ -550,6 +565,7 @@ describe("IntegrationTestCtx.micro", () => {
 
       const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
         clientAndServerProviderMock.object,
+        consoleLogger,
         {
           defaultEnv,
           envSetup: envSetupMock.object,

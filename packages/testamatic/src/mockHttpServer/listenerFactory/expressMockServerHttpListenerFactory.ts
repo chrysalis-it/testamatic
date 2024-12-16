@@ -1,15 +1,17 @@
 import { mockHttpServerExpectationMatchesRequest, RequestMatchInfo } from "../MockHttpExpectation"
 import { isFunction } from "util"
 import { PrettyPrinter } from "mismatched"
-import { MockConfig, MockTcpListenerFactory } from "../MockHttpServer"
-import { TCPConfig } from "../../tcp/tcp.types"
+import { MockConfig, MockHttpListenerFactory } from "../MockHttpServer"
 import express, { Handler } from "express"
-import { tcpListenerFactory } from "./tcpListenerFactory"
+import { httpListenerFactory } from "./httpListenerFactory"
 import http from "http"
+import { HttpConfig } from "../../http/http.types"
+import { StructuredLogger } from "../../logger/StructuredLogger"
 
-export const expressMockServerTcpListenerFactory: MockTcpListenerFactory = (
+export const expressMockServerHttpListenerFactory: MockHttpListenerFactory = (
   mockConfig: MockConfig,
-  tcpConfig: TCPConfig,
+  httpConfig: HttpConfig,
+  logger: StructuredLogger,
 ) => {
   const expressApp = express()
   expressApp.use(expressHandlerMaker(mockConfig))
@@ -18,7 +20,7 @@ export const expressMockServerTcpListenerFactory: MockTcpListenerFactory = (
   // TODO PJ
   // sslify({ resolver: () => true }), bodyParser(),
 
-  return tcpListenerFactory(tcpConfig, server, `${mockConfig.mockServerName} mock server`)
+  return httpListenerFactory(httpConfig, server, `${mockConfig.mockServerName} mock server`, logger)
 }
 
 const expressHandlerMaker =

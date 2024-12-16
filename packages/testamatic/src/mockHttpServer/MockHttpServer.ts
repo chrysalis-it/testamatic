@@ -1,14 +1,18 @@
 import { EnvVars } from "../IntegrationTestCtx"
-import { logger } from "../logger/Logger"
 import {
   MockHttpServerExpectation,
   mockHttpServerExpectationMatchesRequest,
   RequestMatchInfo,
 } from "./MockHttpExpectation"
-import { TCPConfig, TcpListener } from "../tcp/tcp.types"
-import { tcpConfigUrlMaker } from "../tcp/tcpConfigUrlMaker"
+import { HttpConfig, HttpListener } from "../http/http.types"
+import { httpConfigUrlMaker } from "../http/httpConfigUrlMaker"
+import { StructuredLogger } from "../logger/StructuredLogger"
 
-export type MockTcpListenerFactory = (mockConfig: MockConfig, tcpConfig: TCPConfig) => Promise<TcpListener>
+export type MockHttpListenerFactory = (
+  mockConfig: MockConfig,
+  tcpConfig: HttpConfig,
+  logger: StructuredLogger,
+) => Promise<HttpListener>
 
 export interface MockHttpServerFailure {
   reason: string
@@ -18,8 +22,8 @@ export interface MockHttpServerFailure {
 
 export class MockHttpServer<MOCKSERVERNAMES extends string = string, ENVKEYS extends string = string> {
   private static nextServerPort = 9900
-  private tcpCfg: TCPConfig
-  private tcpListener: TcpListener | undefined = undefined
+  private httpConfig: HttpConfig
+  private listener: HttpListener | undefined = undefined
   private expectations: MockHttpServerExpectation[] = []
   private stubs: MockHttpServerExpectation[] = []
   private failures: MockHttpServerFailure[] = []
@@ -27,18 +31,19 @@ export class MockHttpServer<MOCKSERVERNAMES extends string = string, ENVKEYS ext
   constructor(
     public name: MOCKSERVERNAMES,
     private urlEnvKey: ENVKEYS,
-    private listenerFactory: MockTcpListenerFactory,
-    tcpConfig: Omit<TCPConfig, "port">,
+    private listenerFactory: MockHttpListenerFactory,
+    private config: HttpConfig,
+    private logger: StructuredLogger,
   ) {
-    this.tcpCfg = {
-      ...tcpConfig,
+    this.httpConfig = {
+      ...config,
       port: MockHttpServer.nextServerPort++,
     }
   }
 
   async listen(): Promise<void> {
-    if (this.tcpListener) throw new Error("Cant call listen once tcpListener already started")
-    this.tcpListener = await this.listenerFactory(
+    if (this.listener) throw new Error("Cant call listen once tcpListener already started")
+    this.listener = await this.listenerFactory(
       {
         getApplicableExpectation: (requestMatchInfo: RequestMatchInfo) => {
           let nextExpectation = this.expectations.shift()
@@ -54,23 +59,24 @@ export class MockHttpServer<MOCKSERVERNAMES extends string = string, ENVKEYS ext
         registerFailure: (failure: MockHttpServerFailure) => this.failures.push(failure),
         mockServerName: this.name,
       },
-      this.tcpCfg,
+      this.httpConfig,
+      this.logger,
     )
-    logger.info(`Mock server listening on ${this.tcpListener.onUrl}`)
+    this.logger.info(`Mock server listening on ${this.listener.onUrl}`)
   }
 
   getEnvEntries(): Partial<EnvVars<ENVKEYS>> {
     // TODO This is kind of duplicated but needed for setting env
-    const url = tcpConfigUrlMaker(this.tcpCfg)
+    const url = httpConfigUrlMaker(this.httpConfig)
     return { [this.urlEnvKey]: url } as Partial<EnvVars<ENVKEYS>>
   }
 
   close = (): Promise<void> => {
-    if (!this.tcpListener) throw new Error("Unable to close because listener has not been started")
-    return this.tcpListener
+    if (!this.listener) throw new Error("Unable to close because listener has not been started")
+    return this.listener
       .close()
-      .then(() => logger.info(`HttpMockServer ${this.name} closed`))
-      .catch((e) => logger.error(`Error closing HttpMockServer ${this.name}`, e))
+      .then(() => this.logger.info(`HttpMockServer ${this.name} closed`))
+      .catch((e) => this.logger.error(`Error closing HttpMockServer ${this.name}`, e))
   }
 
   expect(expectation: MockHttpServerExpectation): this {

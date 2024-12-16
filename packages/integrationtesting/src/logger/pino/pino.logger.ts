@@ -1,5 +1,5 @@
 import pino, { stdTimeFunctions } from "pino"
-import { StructuredLogger } from "./StructuredLogger"
+import { StructuredLogger } from "../StructuredLogger"
 import { StructuredPinoLogger } from "./StructuredPinoLogger"
 
 export type LogCtxInfoProvider = () => object

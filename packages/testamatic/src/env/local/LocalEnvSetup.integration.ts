@@ -2,6 +2,7 @@ import { assertThat } from "mismatched"
 import { EnvVars } from "../../IntegrationTestCtx"
 import { LocalEnvSetup } from "./LocalEnvSetup"
 import * as process from "process"
+import {consoleLogger} from "../../logger/console/consoleLogger";
 
 type EnvKeys = "pstoreVarName"
 
@@ -12,7 +13,7 @@ const env: EnvVars<EnvKeys> = {
 describe("LocalEnvSetup.integration.ts", () => {
   describe("LocalEnvSetup.integration.ts", () => {
     it("setup and teardown one string var", async () => {
-      const setup = new LocalEnvSetup()
+      const setup = new LocalEnvSetup(consoleLogger)
 
       await setup.setup(env)
 

@@ -1,15 +1,15 @@
 import { assertThat, match } from "mismatched"
 import { MockConfig, MockHttpServerFailure } from "../MockHttpServer"
 import { MockHttpServerExpectation } from "../MockHttpExpectation"
-import { TCPConfig, TcpListener } from "../../tcp/tcp.types"
-import { expressMockServerTcpListenerFactory } from "./expressMockServerTcpListenerFactory"
-import { logger } from "../../logger/Logger"
+import { expressMockServerHttpListenerFactory } from "./expressMockServerHttpListenerFactory"
 import { createAxiosInstance } from "../../axios/axiosInstanceMaker"
+import { consoleLogger } from "../../logger/console/consoleLogger"
+import { HttpListener, HttpConfig } from "../../http/http.types"
 
 describe("expressMockServerTcpListenerFactory.integration.ts", () => {
-  let listener: TcpListener
+  let listener: HttpListener
 
-  const axiosClient = createAxiosInstance("axios for configureIntegrationTestCtxFactory.integration", logger)
+  const axiosClient = createAxiosInstance("axios for configureIntegrationTestCtxFactory.integration", consoleLogger)
 
   afterEach(async () => {
     await listener.close()
@@ -18,7 +18,7 @@ describe("expressMockServerTcpListenerFactory.integration.ts", () => {
   it("when no expectations", async () => {
     const failures: MockHttpServerFailure[] = []
 
-    const tcpConfig: TCPConfig = {
+    const tcpConfig: HttpConfig = {
       protocol: "http",
       host: "localhost",
       port: 9900,
@@ -28,7 +28,7 @@ describe("expressMockServerTcpListenerFactory.integration.ts", () => {
       registerFailure: (failure: MockHttpServerFailure) => failures.push(failure),
       getApplicableExpectation: () => undefined,
     }
-    listener = await expressMockServerTcpListenerFactory(mockConfig, tcpConfig)
+    listener = await expressMockServerHttpListenerFactory(mockConfig, tcpConfig, consoleLogger)
     const response = await axiosClient.get<undefined>(`${listener.onUrl}/hello`)
 
     // assert response
@@ -51,7 +51,7 @@ describe("expressMockServerTcpListenerFactory.integration.ts", () => {
   it("when expectation that does NOT match", async () => {
     const failures: MockHttpServerFailure[] = []
 
-    const tcpConfig: TCPConfig = {
+    const tcpConfig: HttpConfig = {
       protocol: "http",
       host: "localhost",
       port: 9901,
@@ -75,7 +75,7 @@ describe("expressMockServerTcpListenerFactory.integration.ts", () => {
       registerFailure: (failure: MockHttpServerFailure) => failures.push(failure),
       getApplicableExpectation: () => nextExpectation,
     }
-    listener = await expressMockServerTcpListenerFactory(mockConfig, tcpConfig)
+    listener = await expressMockServerHttpListenerFactory(mockConfig, tcpConfig, consoleLogger)
 
     const response = await axiosClient.get(`${listener.onUrl}/hello`)
 
@@ -94,7 +94,7 @@ describe("expressMockServerTcpListenerFactory.integration.ts", () => {
   it("when expectation that does match", async () => {
     const failures: MockHttpServerFailure[] = []
 
-    const tcpConfig: TCPConfig = {
+    const tcpConfig: HttpConfig = {
       protocol: "http",
       host: "localhost",
       port: 9902,
@@ -118,7 +118,7 @@ describe("expressMockServerTcpListenerFactory.integration.ts", () => {
       registerFailure: (failure: MockHttpServerFailure) => failures.push(failure),
       getApplicableExpectation: () => nextExpectation,
     }
-    listener = await expressMockServerTcpListenerFactory(mockConfig, tcpConfig)
+    listener = await expressMockServerHttpListenerFactory(mockConfig, tcpConfig, consoleLogger)
 
     const response = await axiosClient.get(`${listener.onUrl}/${expectedPath}`)
 

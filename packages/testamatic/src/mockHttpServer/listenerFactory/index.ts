@@ -1,3 +1,3 @@
-export * from "./expressMockServerTcpListenerFactory"
+export * from "./expressMockServerHttpListenerFactory"
 export * from "./koaMockServerTcpListenerFactory"
-export * from "./tcpListenerFactory"
+export * from "./httpListenerFactory"

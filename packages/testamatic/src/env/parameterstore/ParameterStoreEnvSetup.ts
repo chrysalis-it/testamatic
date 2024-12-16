@@ -1,8 +1,8 @@
 import { promises } from "promises-arrow"
-import { logger } from "../../logger/Logger"
 import { EnvSetup } from "../../configureIntegrationTestCtxFactory"
 import { EnvVars } from "../../IntegrationTestCtx"
 import { PutParameterRequest, SSM } from "@aws-sdk/client-ssm"
+import { StructuredLogger } from "../../logger/StructuredLogger"
 
 export class ParamStoreEnvSetup<ENVKEYS extends string> implements EnvSetup<ENVKEYS> {
   private paramsToTeardown: PutParameterRequest[] = []
@@ -10,10 +10,11 @@ export class ParamStoreEnvSetup<ENVKEYS extends string> implements EnvSetup<ENVK
   constructor(
     private pstorePath: string,
     private ssm: SSM,
+    private logger: StructuredLogger,
   ) {}
 
   public async setup(env: EnvVars<ENVKEYS>): Promise<void> {
-    logger.debug("Calling ParamStoreEnvSetup.setup", { env })
+    this.logger.debug("Calling ParamStoreEnvSetup.setup", { env })
     const pstorePutRequests: PutParameterRequest[] = Object.entries(env).map((envVar) => ({
       Name: `${this.pstorePath}/${envVar[0]}`,
       Value: envVar[1] as string, // TODO remove casting
@@ -31,9 +32,9 @@ export class ParamStoreEnvSetup<ENVKEYS extends string> implements EnvSetup<ENVK
     return this.ssm
       .putParameter(pstorePutRequest)
       .then(() => this.paramsToTeardown.push(pstorePutRequest))
-      .then(() => logger.info(`Parameter added`, { name: pstorePutRequest.Name, value: pstorePutRequest.Value }))
+      .then(() => this.logger.info(`Parameter added`, { name: pstorePutRequest.Name, value: pstorePutRequest.Value }))
       .catch((err) => {
-        logger.info(`Error creating parameter`, { name: pstorePutRequest.Name, error: err })
+        this.logger.info(`Error creating parameter`, { name: pstorePutRequest.Name, error: err })
         throw err
       })
   }
@@ -48,7 +49,7 @@ export class ParamStoreEnvSetup<ENVKEYS extends string> implements EnvSetup<ENVK
           // logger.warn({ err }, `Error deleting Parameter named ${deleteParams.Name} removed`)
           if (err.code !== "ParameterNotFound") return reject(err)
         }
-        logger.info(`Parameter named ${deleteParams.Name} removed`)
+        this.logger.info(`Parameter named ${deleteParams.Name} removed`)
         resolve()
       })
     })

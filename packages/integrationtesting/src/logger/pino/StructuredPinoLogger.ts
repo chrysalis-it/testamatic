@@ -1,5 +1,5 @@
 import { Logger } from "pino"
-import { StructuredLogger } from "./StructuredLogger"
+import { StructuredLogger } from "../StructuredLogger"
 
 export class StructuredPinoLogger implements StructuredLogger {
   private localPino: Logger

@@ -2,14 +2,14 @@ import { assertThat, match } from "mismatched"
 import { koaMockServerTcpListenerFactory } from "./koaMockServerTcpListenerFactory"
 import { MockConfig, MockHttpServerFailure } from "../MockHttpServer"
 import { MockHttpServerExpectation } from "../MockHttpExpectation"
-import { TCPConfig, TcpListener } from "../../tcp/tcp.types"
 import { createAxiosInstance } from "../../axios/axiosInstanceMaker"
-import { logger } from "../../logger/Logger"
+import { consoleLogger } from "../../logger/console/consoleLogger"
+import { HttpListener, HttpConfig } from "../../http/http.types"
 
 describe("koaMockServerTcpListenerFactory.integration", () => {
-  let listener: TcpListener
+  let listener: HttpListener
 
-  const axiosClient = createAxiosInstance("axios for configureIntegrationTestCtxFactory.integration", logger)
+  const axiosClient = createAxiosInstance("axios for configureIntegrationTestCtxFactory.integration", consoleLogger)
 
   afterEach(async () => {
     await listener.close()
@@ -18,7 +18,7 @@ describe("koaMockServerTcpListenerFactory.integration", () => {
   it("when no expectations", async () => {
     const failures: MockHttpServerFailure[] = []
 
-    const tcpConfig: TCPConfig = {
+    const tcpConfig: HttpConfig = {
       protocol: "http",
       host: "localhost",
       port: 9900,
@@ -28,7 +28,7 @@ describe("koaMockServerTcpListenerFactory.integration", () => {
       registerFailure: (failure: MockHttpServerFailure) => failures.push(failure),
       getApplicableExpectation: () => undefined,
     }
-    listener = await koaMockServerTcpListenerFactory(mockConfig, tcpConfig)
+    listener = await koaMockServerTcpListenerFactory(mockConfig, tcpConfig, consoleLogger)
 
     const response = await axiosClient.get<undefined>(`${listener.onUrl}/hello`)
 
@@ -52,7 +52,7 @@ describe("koaMockServerTcpListenerFactory.integration", () => {
   it("when expectation that doesnt match", async () => {
     const failures: MockHttpServerFailure[] = []
 
-    const tcpConfig: TCPConfig = {
+    const tcpConfig: HttpConfig = {
       protocol: "http",
       host: "localhost",
       port: 9901,
@@ -76,7 +76,7 @@ describe("koaMockServerTcpListenerFactory.integration", () => {
       registerFailure: (failure: MockHttpServerFailure) => failures.push(failure),
       getApplicableExpectation: () => nextExpectation,
     }
-    listener = await koaMockServerTcpListenerFactory(mockConfig, tcpConfig)
+    listener = await koaMockServerTcpListenerFactory(mockConfig, tcpConfig, consoleLogger)
 
     const response = await axiosClient.get(`${listener.onUrl}/hello`)
 
@@ -95,7 +95,7 @@ describe("koaMockServerTcpListenerFactory.integration", () => {
   it("when expectation that does match", async () => {
     const failures: MockHttpServerFailure[] = []
 
-    const tcpConfig: TCPConfig = {
+    const tcpConfig: HttpConfig = {
       protocol: "http",
       host: "localhost",
       port: 9902,
@@ -119,7 +119,7 @@ describe("koaMockServerTcpListenerFactory.integration", () => {
       registerFailure: (failure: MockHttpServerFailure) => failures.push(failure),
       getApplicableExpectation: () => nextExpectation,
     }
-    listener = await koaMockServerTcpListenerFactory(mockConfig, tcpConfig)
+    listener = await koaMockServerTcpListenerFactory(mockConfig, tcpConfig, consoleLogger)
 
     const response = await axiosClient.get(`${listener.onUrl}/${expectedPath}`)
 

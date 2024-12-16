@@ -4,12 +4,17 @@ import sslify from "koa-sslify"
 import { mockHttpServerExpectationMatchesRequest, RequestMatchInfo } from "../MockHttpExpectation"
 import { isFunction } from "util"
 import { PrettyPrinter } from "mismatched"
-import { MockConfig, MockTcpListenerFactory } from "../MockHttpServer"
-import { ServerStarter, tcpListenerFactory } from "./tcpListenerFactory"
-import { TCPConfig } from "../../tcp/tcp.types"
+import { MockConfig, MockHttpListenerFactory } from "../MockHttpServer"
+import { httpListenerFactory, ServerStarter } from "./httpListenerFactory"
+import { HttpConfig } from "../../http/http.types"
+import { StructuredLogger } from "../../logger/StructuredLogger"
 
-export const koaMockServerTcpListenerFactory: MockTcpListenerFactory = (mockConfig: MockConfig, tcpConfig: TCPConfig) =>
-  tcpListenerFactory(tcpConfig, koaServerStarterMaker(mockConfig), `${mockConfig.mockServerName} mock server`)
+export const koaMockServerTcpListenerFactory: MockHttpListenerFactory = (
+  mockConfig: MockConfig,
+  tcpConfig: HttpConfig,
+  logger: StructuredLogger,
+) =>
+  httpListenerFactory(tcpConfig, koaServerStarterMaker(mockConfig), `${mockConfig.mockServerName} mock server`, logger)
 
 const koaServerStarterMaker = (mockConfig: MockConfig): ServerStarter => {
   const koa = new Koa()

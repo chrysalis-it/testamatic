@@ -1,6 +1,6 @@
 {
   "name": "@chrysalis-it/integration-testing",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "license": "Apache 2.0",
   "private": true,
   "description": "Integration tests for MonoRepo",
@@ -15,9 +15,9 @@
     "compile": "tsc -b ."
   },
   "dependencies": {
-    "@chrysalis-it/some-fixture": "^1.0.10",
-    "@chrysalis-it/testamatic": "^1.0.10",
-    "@chrysalis-it/testamatic-dynamo": "^1.0.9"
+    "@chrysalis-it/some-fixture": "^1.0.11",
+    "@chrysalis-it/testamatic": "^1.0.11",
+    "@chrysalis-it/testamatic-dynamo": "^1.0.10"
   },
   "devDependencies": {
     "@aws-sdk/lib-dynamodb": "^3.0.0",

@@ -1,5 +1,5 @@
 export interface TestamaticLogger {
-  fatal(message: string, data: object): void
+  fatal(message: string, data?: object): void
 
   error(message: string, error: unknown): void
 
@@ -11,5 +11,5 @@ export interface TestamaticLogger {
 
   trace(message: string, data?: object): void
 
-  child(data: object): TestamaticLogger
+  child(name: string, data?: object): TestamaticLogger
 }

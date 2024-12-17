@@ -94,8 +94,6 @@ const requestErrorLoggerFactory = (serviceName: string, logger: TestamaticLogger
 const responseErrorLoggerFactory =
   (serviceName: string, logger: TestamaticLogger) =>
   (error: AxiosError): never => {
-    const errorLogger = logger.child({ serviceName })
-
     try {
       logger.error("Response Error", {
         name: error.name,
@@ -105,7 +103,7 @@ const responseErrorLoggerFactory =
         serviceName: serviceName,
       })
     } catch (e) {
-      errorLogger.error("Error logging failed", e)
+      logger.error("Error logging failed", e)
     }
     throw error
   }

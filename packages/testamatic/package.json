@@ -1,6 +1,6 @@
 {
   "name": "@chrysalis-it/testamatic",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "license": "Apache 2.0",
   "description": "Configurable, light weight Integration test automation",
   "publishConfig": {
@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@aws-sdk/client-ssm": "^3.0.0",
-    "@chrysalis-it/some-fixture": "^1.0.8",
+    "@chrysalis-it/some-fixture": "^1.0.9",
     "@types/express": "^4.0.0",
     "@types/koa": "^2.00.0",
     "@types/koa-bodyparser": "^4.0.0",

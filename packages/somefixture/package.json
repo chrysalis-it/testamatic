@@ -1,12 +1,11 @@
 {
   "name": "@chrysalis-it/some-fixture",
-  "version": "1.0.8",
-  "license": "Apache 2.0",
+  "version": "1.0.9",
+  "license": "MIT",
   "description": "Fixture For introducing caos into automated tests",
   "publishConfig": {
     "access": "public"
   },
-  "license": "MIT",
   "main": "dist/index.js",
   "type": "commonjs",
   "types": "dist/index.d.ts",

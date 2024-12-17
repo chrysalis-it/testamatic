@@ -8,19 +8,20 @@ import { MockConfig, MockHttpListenerFactory } from "../MockHttpServer"
 import { httpListenerFactory, ServerStarter } from "./httpListenerFactory"
 import { TestamaticLogger } from "../../logger/TestamaticLogger"
 import { HttpConfig } from "../../http/http.types"
+import { HttpListener } from "../../http/http.types"
 
 export const koaMockServerTcpListenerFactory: MockHttpListenerFactory = (
   mockConfig: MockConfig,
   httpConfig: HttpConfig,
   logger: TestamaticLogger,
-) =>
+): Promise<HttpListener> =>
   httpListenerFactory(httpConfig, koaServerStarterMaker(mockConfig), `${mockConfig.mockServerName} mock server`, logger)
 
 const koaServerStarterMaker = (mockConfig: MockConfig): ServerStarter => {
   const koa = new Koa()
   const middlewares = [sslify({ resolver: () => true }), bodyParser(), reqHandlerMaker(mockConfig)]
   middlewares.forEach((middleWare) => koa.use(middleWare))
-  return koa
+  return (httpConfig) => Promise.resolve(koa.listen(httpConfig.port))
 }
 
 const reqHandlerMaker = (mockConfig: MockConfig) => async (koaCtx: Koa.Context) => {

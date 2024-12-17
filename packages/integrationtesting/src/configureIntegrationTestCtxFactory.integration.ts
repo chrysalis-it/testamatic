@@ -16,6 +16,8 @@ import {
 } from "@chrysalis-it/testamatic"
 import { createAxiosInstance } from "@chrysalis-it/testamatic"
 import { consoleLogger } from "@chrysalis-it/testamatic"
+import { HttpConfig } from "@chrysalis-it/testamatic"
+import http from "http"
 
 type SomeEnvKeys = "EnvKeyOne" | "EnvKeyTwo"
 type SomeMockServerNames = "HttpMockServer1" | "HttpMockServer2" | "HttpMockServer3"
@@ -26,19 +28,21 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
   describe("test runs with", () => {
     const url = "/"
     const expectedResponse = "yes I am alive AND LIFE IS GOOD!"
-    const simpleAppProvider = (): ServerStarter => {
+
+    const simpleServerStarter: ServerStarter = (httpConfig: HttpConfig) => {
       const app = express()
       const router = ExRouter()
       router.get(url, (req, res) => {
         res.json(expectedResponse)
       })
       app.use(router)
-      return app
+      const server = http.createServer(app)
+      return Promise.resolve(server.listen(httpConfig.port))
     }
 
     it("server config only", async () => {
       const clientAndServerProvider: ClientAndServerProvider<SomeEnvKeys, RestClient> =
-        restClientAndExpressServerProviderMaker(simpleAppProvider, "Test", consoleLogger)
+        restClientAndExpressServerProviderMaker(simpleServerStarter, "Test", consoleLogger)
       const testCtx = configureIntegrationTestCtxProvider(clientAndServerProvider, consoleLogger)
 
       const ctx = await testCtx()
@@ -56,7 +60,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
     })
     it("server config and env config", async () => {
       const clientAndServerProvider: ClientAndServerProvider<SomeEnvKeys, RestClient> =
-        restClientAndExpressServerProviderMaker(simpleAppProvider, "Test", consoleLogger)
+        restClientAndExpressServerProviderMaker(simpleServerStarter, "Test", consoleLogger)
 
       const testCtx = configureIntegrationTestCtxProvider<SomeEnvKeys>(clientAndServerProvider, consoleLogger, {
         defaultEnv: {
@@ -80,7 +84,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
     })
     it("server config and env config and when delta", async () => {
       const clientAndServerProvider: ClientAndServerProvider<SomeEnvKeys, RestClient> =
-        restClientAndExpressServerProviderMaker(simpleAppProvider, "Test", consoleLogger)
+        restClientAndExpressServerProviderMaker(simpleServerStarter, "Test", consoleLogger)
 
       const expectedDelta = { value: 2 }
       const testCtx = configureIntegrationTestCtxProvider<SomeEnvKeys, string, { value: number }>(
@@ -120,7 +124,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
       const expectedMockServerResponse = "Hello I am a mocked server"
 
       it("with no expectation and no calls", async () => {
-        const simpleAppWithOnedependantCallMaker = (): ServerStarter => {
+        const simpleAppWithOnedependantCallMaker: ServerStarter = (httpConfig: HttpConfig) => {
           // get env
 
           // compose app that calls mocked service
@@ -130,7 +134,9 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
             res.json({ serverResponse: expectedServerResponse, mockResponse: undefined })
           })
           app.use(router)
-          return app
+
+          const server = http.createServer(app)
+          return Promise.resolve(server.listen(httpConfig.port))
         }
 
         const testCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
@@ -180,7 +186,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
         await testCtx.all.after()
       })
       it("with expectation that is satisfied", async () => {
-        const simpleAppWithOneDependantCallMaker = (): ServerStarter => {
+        const simpleAppWithOneDependantCallMaker: ServerStarter = (httpConfig: HttpConfig) => {
           // get env
           const env = process.env as EnvVars<SomeEnvKeys>
           // compose app that calls mocked service
@@ -194,7 +200,8 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
             res.json({ serverResponse: expectedServerResponse, mockResponse: response.data })
           })
           app.use(router)
-          return app
+          const server = http.createServer(app)
+          return Promise.resolve(server.listen(httpConfig.port))
         }
 
         const testCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
@@ -256,7 +263,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
         await testCtx.all.after()
       })
       it("with no expectation and unexpected call", async () => {
-        const simpleAppWithOnedependantCallMaker = (): ServerStarter => {
+        const simpleAppWithOnedependantCallMaker: ServerStarter = (httpConfig: HttpConfig) => {
           // get env
           const env = process.env as EnvVars<SomeEnvKeys>
           // compose app that calls mocked service
@@ -272,7 +279,8 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
             res.json({ serverResponse: expectedServerResponse, mockResponse: response.data })
           })
           app.use(router)
-          return app
+          const server = http.createServer(app)
+          return Promise.resolve(server.listen(httpConfig.port))
         }
 
         const testCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(
@@ -330,14 +338,15 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
         }
       })
       it("with expectation that is not satisfied", async () => {
-        const simpleAppWithOnedependantCallMaker = (): ServerStarter => {
+        const simpleAppWithOnedependantCallMaker: ServerStarter = (httpConfig: HttpConfig) => {
           const app = express()
           const router = ExRouter()
           router.get(url, async (req, res) => {
             res.json({ serverResponse: expectedServerResponse, mockResponse: expectedMockServerResponse })
           })
           app.use(router)
-          return app
+          const server = http.createServer(app)
+          return Promise.resolve(server.listen(httpConfig.port))
         }
 
         const IntegrationTestCtxProvider = configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames>(

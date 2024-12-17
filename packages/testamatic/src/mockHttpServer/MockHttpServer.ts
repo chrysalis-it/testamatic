@@ -21,7 +21,7 @@ export interface MockHttpServerFailure {
 }
 
 export class MockHttpServer<MOCKSERVERNAMES extends string = string, ENVKEYS extends string = string> {
-  private static nextServerPort = 9900
+  private static nextServerPort = 9000
   private httpConfig: HttpConfig
   private listener: HttpListener | undefined = undefined
   private expectations: MockHttpServerExpectation[] = []

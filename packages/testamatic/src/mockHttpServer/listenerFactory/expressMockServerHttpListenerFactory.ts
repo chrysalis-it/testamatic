@@ -6,21 +6,24 @@ import express, { Handler } from "express"
 import { httpListenerFactory } from "./httpListenerFactory"
 import http from "http"
 import { HttpConfig } from "../../http/http.types"
+import { HttpListener } from "../../http/http.types"
 import { TestamaticLogger } from "../../logger/TestamaticLogger"
 
-export const expressMockServerHttpListenerFactory: MockHttpListenerFactory = (
+export const expressMockServerHttpListenerFactory: MockHttpListenerFactory = async (
   mockConfig: MockConfig,
   httpConfig: HttpConfig,
   logger: TestamaticLogger,
-) => {
-  const expressApp = express()
-  expressApp.use(expressHandlerMaker(mockConfig))
-  const server = http.createServer(expressApp)
+): Promise<HttpListener> => {
+  const serverStarter = () => {
+    const expressApp = express()
+    expressApp.use(expressHandlerMaker(mockConfig))
+    return Promise.resolve(http.createServer(expressApp).listen(httpConfig.port))
+  }
 
   // TODO PJ
   // sslify({ resolver: () => true }), bodyParser(),
 
-  return httpListenerFactory(httpConfig, server, `${mockConfig.mockServerName} mock server`, logger)
+  return httpListenerFactory(httpConfig, serverStarter, `${mockConfig.mockServerName} mock server`, logger)
 }
 
 const expressHandlerMaker =

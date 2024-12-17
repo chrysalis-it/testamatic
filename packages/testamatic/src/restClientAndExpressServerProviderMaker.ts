@@ -7,16 +7,16 @@ import { HttpConfig } from "./http/http.types"
 
 export const restClientAndExpressServerProviderMaker =
   (
-    serverStarterProvider: () => ServerStarter,
+    serverStarter: ServerStarter,
     name: string,
     logger: TestamaticLogger,
-    tcpConfig: HttpConfig = {
+    httpConfig: HttpConfig = {
       port: 9999,
       protocol: "http",
     },
   ) =>
   async (): Promise<ClientAndServer<RestClient>> => {
-    const server = await httpListenerFactory(tcpConfig, serverStarterProvider(), name, logger)
+    const server = await httpListenerFactory(httpConfig, serverStarter, name, logger)
     const client = restClientMaker(server.onUrl, `${name} client`, logger)
     return {
       client: client,

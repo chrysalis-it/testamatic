@@ -10,12 +10,14 @@ import {
   ServerStarter,
 } from "@chrysalis-it/testamatic"
 import { consoleLogger } from "@chrysalis-it/testamatic"
+import { HttpConfig } from "@chrysalis-it/testamatic"
 
 import { PutCommand } from "@aws-sdk/lib-dynamodb"
 
 import { DynamoRow, DynamoTableSetup, dynamoWhenDeltaConfigMaker } from "@chrysalis-it/testamatic-dynamo"
 import { simpleTableDefinitionMaker } from "@chrysalis-it/testamatic-dynamo"
-import {local} from "./local";
+import { local } from "./local"
+import http from "http"
 
 type SomeEnvKeys = "EnvKeyOne" | "EnvKeyTwo"
 
@@ -26,19 +28,19 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
     const url = "/"
     const expectedResponse = "yes I am alive AND LIFE IS GOOD!"
 
-    const simpleAppProvider = (): ServerStarter => {
-      const app = express()
+    const simpleServerStarter: ServerStarter = (httpConfig: HttpConfig) => {
+      const expressApp = express()
       const router = ExRouter()
       router.get(url, (req, res) => {
         res.json(expectedResponse)
       })
-      app.use(router)
-      return app
+      expressApp.use(router)
+      return Promise.resolve(http.createServer(expressApp).listen(httpConfig.port))
     }
 
     it("with dynamo when delta", async () => {
       const clientAndServerProvider: ClientAndServerProvider<SomeEnvKeys, RestClient> =
-        restClientAndExpressServerProviderMaker(simpleAppProvider, "Test", consoleLogger)
+        restClientAndExpressServerProviderMaker(simpleServerStarter, "Test", consoleLogger)
 
       const dynamoTestTableName = "dynamoTestTableName"
       const expectedDynamoRows: DynamoRow<DynamoColumns>[] = [

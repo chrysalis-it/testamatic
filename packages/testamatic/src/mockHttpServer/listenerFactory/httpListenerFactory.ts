@@ -1,33 +1,25 @@
 import { closeHtttpListenerMaker } from "../../http/closeHtttpListenerMaker"
 import { httpConfigUrlMaker } from "../../http/httpConfigUrlMaker"
-
-import { ListenOptions } from "net"
 import { Server } from "http"
 import { HttpConfig, HttpListener } from "../../http/http.types"
 import { TestamaticLogger } from "../../logger/TestamaticLogger"
 
+export type ServerStarter = (httpConfig: HttpConfig) => Promise<Server>
 
-export type ServerStarter = { listen: (options: ListenOptions, listeningListener?: () => void) => Server }
-
-export const httpListenerFactory = (
+export const httpListenerFactory = async (
   httpConfig: HttpConfig,
-  serverStarter: ServerStarter,
+  startServer: ServerStarter,
   name: string,
   logger: TestamaticLogger,
-) =>
-  new Promise<HttpListener>((resolve, reject) => {
+): Promise<HttpListener> => {
+  const server = await startServer(httpConfig)
+  return new Promise<HttpListener>((resolve, reject) => {
     const onUrl = httpConfigUrlMaker(httpConfig)
     console.log(`🚀 ${name} is starting on ${onUrl}`)
     try {
-      const server = serverStarter.listen({
-        port: httpConfig.port,
-        exclusive: false,
-      })
-
       server.on("listening", () => {
         resolve({ onUrl, close: closeHtttpListenerMaker(name, onUrl, server) })
       })
-
       server.on("close", () => {
         logger.info("HTTP server closed ")
       })
@@ -42,3 +34,4 @@ export const httpListenerFactory = (
       reject(err)
     }
   })
+}

@@ -24,19 +24,18 @@ export const configureIntegrationTestCtxProvider = <
 ```
 
 ```typescript
-export interface IntegrationTestContext<ENVKEYS extends string, MOCKSERVERNAMES extends string, WHENDELTA> {
+export type IntegrationTestCtx<
+  ENVKEYS extends string,
+  MOCKSERVERNAMES extends string,
+  WHENDELTA extends object,
+  APICLIENT extends object,
+> = {
+  each: BeforeAndAfter
+  all: BeforeAndAfter
+  httpMock: MockServerExpecter<MOCKSERVERNAMES, ENVKEYS>
+  when: WHEN<WHENDELTA>
+  api: API<APICLIENT>
   env: EnvVars<ENVKEYS>
-  before: {
-    all: () => Promise<void>
-    each: () => Promise<void>
-  }
-  after: {
-    all: () => Promise<void>
-    each: () => Promise<void>
-  }
-  httpMock: { expect: (name: MOCKSERVERNAMES, expectation: MockHttpExpectation) => void }
-  when: <RES>(isExecuted: IsExecuted<RES>) => Promise<{ response: RES; delta: WHENDELTA }>
-  api: { client?: RestClient }
 }
 ```
 

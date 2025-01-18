@@ -73,7 +73,6 @@ export type MyDelta = { eventSourceTableRows: { event: object } }
 ```
 
 
-
 ## Configuration parameters
 
 ### Client And Server
@@ -128,8 +127,6 @@ every time when is called and returned along with the response from what was exe
  when: <RES>(isExecuted: IsExecuted<RES>) => Promise<{ response: RES; delta: WHENDELTA }>
 ```
 
-#### Config
-
 The following interface controls how a snapshot is taken before and
 after running a 'when' and how the delta between them is calculated.
 
@@ -151,8 +148,6 @@ responses. Expected behaviours are set up via the httpMock.expect method supplie
   expect: (name: MOCKSERVERNAMES, expectation: MockHttpExpectation) => void
 }
 ```
-
-#### Config
 
 A list of http mocks can be provided in the makeIntegrationTestContextFactory configuration call above.
 

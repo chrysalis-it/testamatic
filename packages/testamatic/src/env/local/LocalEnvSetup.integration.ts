@@ -2,7 +2,7 @@ import { assertThat } from "mismatched"
 import { EnvVars } from "../../IntegrationTestCtx"
 import { LocalEnvSetup } from "./LocalEnvSetup"
 import * as process from "process"
-import {consoleLogger} from "../../logger/console/consoleLogger";
+import { consoleLogger } from "../../logger/console/consoleLogger"
 
 type EnvKeys = "pstoreVarName"
 

@@ -3,7 +3,7 @@ import { local } from "../../test/local"
 import { ParamStoreEnvSetup } from "./ParameterStoreEnvSetup"
 import { EnvVars } from "../../IntegrationTestCtx"
 import { someFixture } from "@chrysalis-it/some-fixture"
-import {consoleLogger} from "../../logger/console/consoleLogger";
+import { consoleLogger } from "../../logger/console/consoleLogger"
 
 type EnvKeys = "pstoreVarName"
 

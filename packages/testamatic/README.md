@@ -3,7 +3,45 @@
 Configurabe, light weight, integration testing context that can be used to support writing integrations with the test
 runner of your choice.
 
-## Configuration
+
+```typescript
+
+export const configureIntegrationTestCtxProvider = <
+  ENVKEYS extends string = string,
+  MOCKSERVERNAMES extends string = string,
+  WHENDELTA extends object = object,
+  APICLIENT extends object = RestClient,
+>(
+  clientAndServerProvider: ClientAndServerProvider<ENVKEYS, APICLIENT>,
+  logger: TestamaticLogger,
+  envConfig: EnvConfig<ENVKEYS> = nullEnvConfig,
+  whenDeltaConfig?: WhenDeltaConfig<WHENDELTA>,
+  mockHttpServers: MockHttpServer<MOCKSERVERNAMES, ENVKEYS>[] = [],
+  beforeAll: Given[] = [],
+  beforeEach: Given[] = [],
+): IntegrationTestCtxProvider<ENVKEYS, MOCKSERVERNAMES, WHENDELTA, APICLIENT>
+
+```
+
+```typescript
+export interface IntegrationTestContext<ENVKEYS extends string, MOCKSERVERNAMES extends string, WHENDELTA> {
+  env: EnvVars<ENVKEYS>
+  before: {
+    all: () => Promise<void>
+    each: () => Promise<void>
+  }
+  after: {
+    all: () => Promise<void>
+    each: () => Promise<void>
+  }
+  httpMock: { expect: (name: MOCKSERVERNAMES, expectation: MockHttpExpectation) => void }
+  when: <RES>(isExecuted: IsExecuted<RES>) => Promise<{ response: RES; delta: WHENDELTA }>
+  api: { client?: RestClient }
+}
+```
+
+
+## Configuration Types
 
 There are a few key types that must be provided before configuring the test context for a particular project
 
@@ -34,38 +72,75 @@ export type MyDelta = { eventSourceTableRows: { event: object } }
 
 ```
 
-```typescript
-export const makeIntegrationTestContextFactory = <ENVKEYS extends string, MOCKSERVERNAMES extends string, WHENDELTA>(
-  defaultEnv: EnvVars<ENVKEYS>,
-  mockHttpServers: MockHttpServer<MOCKSERVERNAMES, any>[],
-  whenDeltaConfig: WhenDeltaConfig<WHENDELTA>,
-  apiConfig?: ApiConfig
-): (() => IntegrationTestContext<ENVKEYS, MOCKSERVERNAMES, WHENDELTA>)
 
+
+## Configuration parameters
+
+### Client And Server
+Simple interface used to create the app and a corresponding client to be used to call the app
+
+```typescript
+export type ClientAndServerProvider<ENVKEYS extends string, CLIENT extends object = RestClient> = (
+env: EnvVars<ENVKEYS>,
+) => Promise<ClientAndServer<CLIENT>>
+
+export type ClientAndServer<APICLIENT extends object = RestClient> = { client: APICLIENT; close: () => Promise<void> }
 ```
 
-## Provided context
+
+### Logger
+Simple interface used to log output from testamatic
 
 ```typescript
-export interface IntegrationTestContext<ENVKEYS extends string, MOCKSERVERNAMES extends string, WHENDELTA> {
-  env: EnvVars<ENVKEYS>
-  before: {
-    all: () => Promise<void>
-    each: () => Promise<void>
-  }
-  after: {
-    all: () => Promise<void>
-    each: () => Promise<void>
-  }
-  httpMock: { expect: (name: MOCKSERVERNAMES, expectation: MockHttpExpectation) => void }
-  when: <RES>(isExecuted: IsExecuted<RES>) => Promise<{ response: RES; delta: WHENDELTA }>
-  api: { client?: RestClient }
+export interface TestamaticLogger {
+  fatal(message: string, data?: object): void
+
+  error(message: string, error: unknown): void
+
+  warn(message: string, data?: object): void
+
+  info(message: string, data?: object): void
+
+  debug(message: string, data?: object): void
+
+  trace(message: string, data?: object): void
+
+  child(name: string, data?: object): TestamaticLogger
 }
 ```
 
-## Currently supports
+### Env Config 
+Simple interface that creates the environment in the correct location ie local env, parameterstore .... This interface is
+called once all the mocks have been created and thier urls are known. 
+```typescript
+export type EnvSetup<ENVKEYS extends string> = {
+  setup: (env: EnvVars<ENVKEYS>) => Promise<void>
+  teardown: () => Promise<void>
+}
+```
+### When Delta
 
-### Http Mocks
+The when method provided by the test context can return a delta, which is the change of anything of interest. For
+example the change in a table might be of interesting to assert against. Once configured this snaphot is calculated
+every time when is called and returned along with the response from what was executed.
+
+```typescript
+ when: <RES>(isExecuted: IsExecuted<RES>) => Promise<{ response: RES; delta: WHENDELTA }>
+```
+
+#### Config
+
+The following interface controls how a snapshot is taken before and
+after running a 'when' and how the delta between them is calculated.
+
+```typescript
+ export type WhenDeltaConfig<WHENDELTA> = {
+  snapshot: () => Promise<WHENDELTA>
+  diff: (first: WHENDELTA, second: WHENDELTA) => Promise<WHENDELTA>
+}
+```
+
+### Mock Http Servers
 
 Simple servers that can be configured to expect input and return responses in a similar way that we can
 use mocks in unit testing except http mocks test everything because they actually receive TCP requests and return TCP
@@ -92,59 +167,38 @@ export class MockHttpServer<MOCKSERVERNAMES extends string, ENVKEYS extends stri
   ) {
   }
 }
-
-````
-
-### Delta
-
-The when method provided by the test context can return a delta, which is the change of anything of interest. For
-example the change in a table might be of interesting to assert against. Once configured this snaphot is calculated
-every time when is called and returned along with the response from what was executed.
-
-```typescript
- when: <RES>(isExecuted: IsExecuted<RES>) => Promise<{ response: RES; delta: WHENDELTA }>
 ```
 
-#### Config
+### Before All
 
-The following interface controls how a snapshot is taken before and
-after running a 'when' and how the delta between them is calculated.
+Setups that are called once at the beginning of a test run, and once at the end to teardown  
 
 ```typescript
- export type WhenDeltaConfig<WHENDELTA> = {
-  snapshot: () => Promise<WHENDELTA>
-  diff: (first: WHENDELTA, second: WHENDELTA) => Promise<WHENDELTA>
+  export interface Given {
+  teardown(): Promise<void>
+  setup(): Promise<void>
 }
 ```
 
-### RestApi (TODO)
+### Before Each
 
-If configured the test context can start an api on a designated localhost port and return a rest client that is
-configured to make calls to that api. The api client is made available by the test context calling api.client on the testcontext
-
+Setups that are called twice before each test. Once to teardown and then  to setup. This means that state 
+remains once a test is run so it can be used to debug or trouble shoot. 
 ```typescript
-  api: {
-  client ? : RestClient
+ export interface Given {
+  teardown(): Promise<void>
+  setup(): Promise<void>
 }
 ```
 
-#### Config
+## EXAMPLES
+Are found in integrationtesting package in the form of running integration tests. 
 
-If an ApiConfig is provided when configuring your test context the api server will be started, and stopped and an api
-clent will be returned to be used in the testing of the api
-
-```typescript
-export type ApiMaker = () => Promise<http.Server>
-
-export type ApiConfig = {
-port: number
-makeApi: ApiMaker
-}
-```
 
 ## TODO
+Curently calls clientAndServerProvider once at the beginning of the test run. May be a need to call create every time to avoid issues 
+around caching etc
 
--- Setups (and teardown)
 
 ## Dev Info
 

@@ -1,6 +1,6 @@
 {
   "name": "@chrysalis-it/some-fixture",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "license": "MIT",
   "description": "Fixture For introducing caos into automated tests",
   "publishConfig": {

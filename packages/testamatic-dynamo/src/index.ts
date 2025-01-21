@@ -1,2 +1,3 @@
 export * from "./DynamoTableSetup"
-export * from "./dynamoWhenDeltaConfigMaker"
+export * from "./dynamoEventStoreDeltaConfigMaker"
+export * from "./dynamoTableDeltaConfigMaker"

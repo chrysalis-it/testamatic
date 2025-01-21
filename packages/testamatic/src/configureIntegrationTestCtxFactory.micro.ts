@@ -37,6 +37,8 @@ class SomeWhenDelta {
   list: Array<string>
 }
 
+type SomeSnapshot = []
+
 describe("IntegrationTestCtx.micro", () => {
   let mocks: Thespian
   let httpMockkServerMocks: TMocked<MockHttpServer<SomeMockServerNames, SomeEnvKeys>>[]
@@ -76,7 +78,7 @@ describe("IntegrationTestCtx.micro", () => {
           defaultEnv,
           envSetup: envSetupMock.object,
         },
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+        someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
         httpMockkServerMocks.map((x) => x.object),
       )
     })
@@ -91,7 +93,7 @@ describe("IntegrationTestCtx.micro", () => {
           defaultEnv,
           envSetup: envSetupMock.object,
         },
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+        someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
       )
 
       envSetupMock.setup((x) => x.teardown())
@@ -138,7 +140,7 @@ describe("IntegrationTestCtx.micro", () => {
           defaultEnv,
           envSetup: envSetupMock.object,
         },
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+        someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
         httpMockkServerMocks.map((x) => x.object),
       )
 
@@ -183,6 +185,7 @@ describe("IntegrationTestCtx.micro", () => {
         const testCtxFactory = await configureIntegrationTestCtxProvider<
           SomeEnvKeys,
           SomeMockServerNames,
+          SomeSnapshot,
           SomeWhenDelta
         >(
           clientAndServerProviderMock.object,
@@ -191,7 +194,7 @@ describe("IntegrationTestCtx.micro", () => {
             defaultEnv,
             envSetup: envSetupMock.object,
           },
-          someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+          someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
           httpMockkServerMocks.map((x) => x.object),
           [],
           givenMocks.map((x) => x.object),
@@ -215,7 +218,7 @@ describe("IntegrationTestCtx.micro", () => {
             defaultEnv,
             envSetup: envSetupMock.object,
           },
-          someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+          someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
         )
 
         // when
@@ -246,6 +249,7 @@ describe("IntegrationTestCtx.micro", () => {
         const testCtxFactory = await configureIntegrationTestCtxProvider<
           SomeEnvKeys,
           SomeMockServerNames,
+          SomeSnapshot,
           SomeWhenDelta
         >(
           clientAndServerProviderMock.object,
@@ -254,7 +258,7 @@ describe("IntegrationTestCtx.micro", () => {
             defaultEnv,
             envSetup: envSetupMock.object,
           },
-          someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+          someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
           httpMockkServerMocks.map((x) => x.object),
           [],
           givenMocks.map((x) => x.object),
@@ -278,7 +282,7 @@ describe("IntegrationTestCtx.micro", () => {
             defaultEnv,
             envSetup: envSetupMock.object,
           },
-          someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+          someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
         )
 
         // when
@@ -306,14 +310,19 @@ describe("IntegrationTestCtx.micro", () => {
         .returns(() => Promise.resolve(clientAndServerMock.object))
       httpMockkServerMocks[0].setup((x) => x.getEnvEntries()).returns(() => httpMockServerVarEntries[0])
 
-      testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+      testCtxFactory = await configureIntegrationTestCtxProvider<
+        SomeEnvKeys,
+        SomeMockServerNames,
+        SomeSnapshot,
+        SomeWhenDelta
+      >(
         clientAndServerProviderMock.object,
         consoleLogger,
         {
           defaultEnv,
           envSetup: envSetupMock.object,
         },
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+        someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
         [httpMockkServerMocks[0].object],
         [],
         [],
@@ -343,7 +352,7 @@ describe("IntegrationTestCtx.micro", () => {
           defaultEnv,
           envSetup: envSetupMock.object,
         },
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+        someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
       )
 
       // when
@@ -384,14 +393,19 @@ describe("IntegrationTestCtx.micro", () => {
         givenMocks.forEach((mock) => mock.setup((given) => given.teardown()).returns(() => Promise.resolve()))
         givenMocks.forEach((mock) => mock.setup((given) => given.setup()).returns(() => Promise.resolve()))
 
-        testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+        testCtxFactory = await configureIntegrationTestCtxProvider<
+          SomeEnvKeys,
+          SomeMockServerNames,
+          SomeSnapshot,
+          SomeWhenDelta
+        >(
           clientAndServerProviderMock.object,
           consoleLogger,
           {
             defaultEnv,
             envSetup: envSetupMock.object,
           },
-          someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+          someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
           httpMockkServerMocks.map((x) => x.object),
           givenMocks.map((x) => x.object),
           [],
@@ -415,7 +429,7 @@ describe("IntegrationTestCtx.micro", () => {
             defaultEnv,
             envSetup: envSetupMock.object,
           },
-          someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+          someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
         )
 
         // when
@@ -444,14 +458,19 @@ describe("IntegrationTestCtx.micro", () => {
         clientAndServerMock.setup((clientandServer) => clientandServer.close()).returns(() => Promise.resolve())
         httpMockkServerMocks.forEach((x) => x.setup((x) => x.close()).returns(() => Promise.resolve()))
 
-        testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+        testCtxFactory = await configureIntegrationTestCtxProvider<
+          SomeEnvKeys,
+          SomeMockServerNames,
+          SomeSnapshot,
+          SomeWhenDelta
+        >(
           clientAndServerProviderMock.object,
           consoleLogger,
           {
             defaultEnv,
             envSetup: envSetupMock.object,
           },
-          someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+          someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
           httpMockkServerMocks.map((x) => x.object),
           givenMocks.map((x) => x.object),
           givenMocks.map((x) => x.object),
@@ -476,7 +495,7 @@ describe("IntegrationTestCtx.micro", () => {
             defaultEnv,
             envSetup: envSetupMock.object,
           },
-          someFixture.someObjectOfType<WhenDeltaConfig<SomeWhenDelta>>(),
+          someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
         )
 
         // when
@@ -488,8 +507,9 @@ describe("IntegrationTestCtx.micro", () => {
 
   describe("when", () => {
     it("with no error", async () => {
-      const whenDeltaConfigMock: TMocked<WhenDeltaConfig<SomeWhenDelta>> = mocks.mock("whenDeltaConfigMock")
-      const firstSnapshot = someFixture.someObjectOfType<SomeWhenDelta>()
+      const whenDeltaConfigMock: TMocked<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>> =
+        mocks.mock("whenDeltaConfigMock")
+      const firstSnapshot = someFixture.someObjectOfType<SomeSnapshot>()
       const expectedDelta = someFixture.someObjectOfType<SomeWhenDelta>()
 
       const expectedEnv = {
@@ -514,7 +534,12 @@ describe("IntegrationTestCtx.micro", () => {
 
       httpMockkServerMocks.forEach((x) => x.setup((x) => x.verify()).returns(() => Promise.resolve()))
 
-      const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+      const testCtxFactory = await configureIntegrationTestCtxProvider<
+        SomeEnvKeys,
+        SomeMockServerNames,
+        SomeSnapshot,
+        SomeWhenDelta
+      >(
         clientAndServerProviderMock.object,
         consoleLogger,
         {
@@ -540,8 +565,9 @@ describe("IntegrationTestCtx.micro", () => {
       })
     })
     it("with error", async () => {
-      const whenDeltaConfigMock: TMocked<WhenDeltaConfig<SomeWhenDelta>> = mocks.mock("whenDeltaConfigMock")
-      const firstSnapshot = someFixture.someObjectOfType<SomeWhenDelta>()
+      const whenDeltaConfigMock: TMocked<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>> =
+        mocks.mock("whenDeltaConfigMock")
+      const firstSnapshot = someFixture.someObjectOfType<SomeSnapshot>()
 
       whenDeltaConfigMock.setup((x) => x.snapshot()).returns(() => Promise.resolve(firstSnapshot))
 
@@ -563,7 +589,12 @@ describe("IntegrationTestCtx.micro", () => {
       )
       httpMockkServerMocks.forEach((x) => x.setup((x) => x.verify()).returns(() => Promise.resolve()))
 
-      const testCtxFactory = await configureIntegrationTestCtxProvider<SomeEnvKeys, SomeMockServerNames, SomeWhenDelta>(
+      const testCtxFactory = await configureIntegrationTestCtxProvider<
+        SomeEnvKeys,
+        SomeMockServerNames,
+        SomeSnapshot,
+        SomeWhenDelta
+      >(
         clientAndServerProviderMock.object,
         consoleLogger,
         {

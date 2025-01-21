@@ -14,15 +14,16 @@ import { HttpConfig } from "@chrysalis-it/testamatic"
 
 import { PutCommand } from "@aws-sdk/lib-dynamodb"
 
-import { DynamoRow, DynamoTableSetup, dynamoWhenDeltaConfigMaker } from "@chrysalis-it/testamatic-dynamo"
+import { dynamoEventStoreDeltaConfigMaker, DynamoTableSetup } from "@chrysalis-it/testamatic-dynamo"
 import { simpleTableDefinitionMaker } from "@chrysalis-it/testamatic-dynamo"
+import { TableDiff } from "@chrysalis-it/testamatic-dynamo"
 import { local } from "./local"
 import http from "http"
+import {dynamoTableDeltaConfigMaker} from "@chrysalis-it/testamatic-dynamo";
 
 type SomeEnvKeys = "EnvKeyOne" | "EnvKeyTwo"
 
-type DynamoColumns = { col1: string; col2: string }
-type WHENDELTA = DynamoRow<DynamoColumns>[]
+type DynamoColumns = { PK: string; SK: number; col1: string; col2: string }
 describe("configureIntegrationTestCtxFactory.integration", () => {
   describe("test runs with dynamo config", () => {
     const url = "/"
@@ -43,7 +44,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
         restClientAndExpressServerProviderMaker(simpleServerStarter, "Test", consoleLogger)
 
       const dynamoTestTableName = "dynamoTestTableName"
-      const expectedDynamoRows: DynamoRow<DynamoColumns>[] = [
+      const expectedDynamoRows: DynamoColumns[] = [
         {
           PK: "1",
           SK: 0,
@@ -58,7 +59,12 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
         },
       ]
 
-      const testCtx = configureIntegrationTestCtxProvider<SomeEnvKeys, string, WHENDELTA>(
+      const testCtx = configureIntegrationTestCtxProvider<
+        SomeEnvKeys,
+        string,
+        DynamoColumns[],
+        TableDiff<DynamoColumns>
+      >(
         clientAndServerProvider,
         consoleLogger,
         {
@@ -68,7 +74,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
           },
           envSetup: new LocalEnvSetup(consoleLogger),
         },
-        dynamoWhenDeltaConfigMaker<DynamoColumns>(local.awsClients.dynamo, dynamoTestTableName),
+        dynamoTableDeltaConfigMaker<DynamoColumns>(local.awsClients.dynamo, dynamoTestTableName),
         [],
         [new DynamoTableSetup(local.awsClients.dynamo, simpleTableDefinitionMaker(dynamoTestTableName))],
       )
@@ -93,7 +99,11 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
 
         return ctx.api.client().get<string>(url)
       })
-      assertThat(whenResponse.delta).is(match.array.unordered(expectedDynamoRows))
+      assertThat(whenResponse.delta).is({
+        removed: [],
+        added: match.array.unordered(expectedDynamoRows),
+        changed: [],
+      })
       assertThat(whenResponse.response.statusCode).is(200)
       assertThat(whenResponse.response.result).is(expectedResponse)
 

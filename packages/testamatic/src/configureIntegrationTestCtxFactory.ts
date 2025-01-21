@@ -25,9 +25,9 @@ export type EnvConfig<ENVKEYS extends string> = {
   envSetup: EnvSetup<ENVKEYS>
 }
 
-export type WhenDeltaConfig<WHENDELTA extends object> = {
-  snapshot: () => Promise<WHENDELTA>
-  diff: (first?: WHENDELTA) => Promise<WHENDELTA>
+export type WhenDeltaConfig<SNAPSHOT extends object, DELTA extends object> = {
+  snapshot: () => Promise<SNAPSHOT>
+  diff: (first?: SNAPSHOT) => Promise<DELTA>
 }
 
 export type IntegrationTestCtxProvider<
@@ -40,17 +40,18 @@ export type IntegrationTestCtxProvider<
 export const configureIntegrationTestCtxProvider = <
   ENVKEYS extends string = string,
   MOCKSERVERNAMES extends string = string,
-  WHENDELTA extends object = object,
+  SNAPSHOT extends object = object,
+  DELTA extends object = object,
   APICLIENT extends object = RestClient,
 >(
   clientAndServerProvider: ClientAndServerProvider<ENVKEYS, APICLIENT>,
   logger: TestamaticLogger,
   envConfig: EnvConfig<ENVKEYS> = nullEnvConfig,
-  whenDeltaConfig?: WhenDeltaConfig<WHENDELTA>,
+  whenDeltaConfig?: WhenDeltaConfig<SNAPSHOT, DELTA>,
   mockHttpServers: MockHttpServer<MOCKSERVERNAMES, ENVKEYS>[] = [],
   beforeAll: Given[] = [],
   beforeEach: Given[] = [],
-): IntegrationTestCtxProvider<ENVKEYS, MOCKSERVERNAMES, WHENDELTA, APICLIENT> => {
+): IntegrationTestCtxProvider<ENVKEYS, MOCKSERVERNAMES, DELTA, APICLIENT> => {
   return async () => {
     const env = envMaker(envConfig.defaultEnv, mockHttpServers)
 
@@ -98,14 +99,14 @@ export const configureIntegrationTestCtxProvider = <
         },
       },
       api: { client: () => clientAndServer.client },
-      when: async <RES>(isExecuted: IsExecuted<RES>): Promise<WHENRESPONSE<RES, WHENDELTA>> => {
+      when: async <RES>(isExecuted: IsExecuted<RES>): Promise<WHENRESPONSE<RES, DELTA>> => {
         try {
-          const before = whenDeltaConfig ? await whenDeltaConfig.snapshot() : ({} as WHENDELTA) // TODO PJ
+          const before = whenDeltaConfig ? await whenDeltaConfig.snapshot() : ({} as SNAPSHOT) // TODO PJ
           logger.info("When started", { env: env, beforeSnapshot: before })
           const response = await isExecuted()
           const rtn = {
             response: response,
-            delta: whenDeltaConfig ? await whenDeltaConfig.diff(before) : ({} as WHENDELTA), // TODO PJ
+            delta: whenDeltaConfig ? await whenDeltaConfig.diff(before) : ({} as DELTA), // TODO PJ
           }
           logger.info("When execution complete", rtn)
           return rtn

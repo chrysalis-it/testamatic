@@ -2,12 +2,13 @@ import { assertThat } from "mismatched"
 import { match } from "mismatched"
 import { DynamoTableSetup } from "./DynamoTableSetup"
 import { simpleTableDefinitionMaker } from "./DynamoTableSetup"
-import { dynamoWhenDeltaConfigMaker } from "./dynamoWhenDeltaConfigMaker"
-import { DynamoRow } from "./dynamoWhenDeltaConfigMaker"
 import { PutCommand } from "@aws-sdk/lib-dynamodb"
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb"
 import { someFixture } from "@chrysalis-it/some-fixture"
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
+import { dynamoTableDeltaConfigMaker } from "./dynamoTableDeltaConfigMaker"
+import { dynamoTableFixtureMaker } from "./dynamo.fixture"
+import { dynamoRowFixture } from "./dynamo.fixture"
 
 const localStackConfig = {
   endpoint: "http://localstack:4566",
@@ -17,25 +18,24 @@ const localStackConfig = {
   timeout: 2000,
 }
 
-describe("dynamoWhenDeltaConfigMaker.integration", () => {
+describe("dynamoTableDeltaConfigMaker.integration", () => {
   const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient(localStackConfig))
   const TABLE_NAME = "testTableName"
   const dynamoTableSetup = new DynamoTableSetup(dynamo, simpleTableDefinitionMaker(TABLE_NAME))
-  const whenDeltaConfig = dynamoWhenDeltaConfigMaker(dynamo, TABLE_NAME)
+
+  const dynamoTableFixture = dynamoTableFixtureMaker<DynamoRow>(dynamo, TABLE_NAME)
+  const whenDeltaConfig = dynamoTableDeltaConfigMaker<DynamoRow>(dynamo, TABLE_NAME)
 
   beforeAll(async () => await dynamoTableSetup.setup())
   afterAll(async () => await dynamoTableSetup.teardown())
 
   describe("snapshot", () => {
     it("when no rows", async () => {
-      const whenDeltaConfig = dynamoWhenDeltaConfigMaker(dynamo, TABLE_NAME)
       const snapshot = await whenDeltaConfig.snapshot()
       assertThat(snapshot).is([])
     })
     it("when rows exist", async () => {
-      const whenDeltaConfig = dynamoWhenDeltaConfigMaker(dynamo, TABLE_NAME)
-
-      const expectedDynamoRows: DynamoRow<DynamoColumns>[] = [
+      const expectedDynamoRows: DynamoRow[] = [
         {
           PK: "1",
           SK: 0,
@@ -78,83 +78,106 @@ describe("dynamoWhenDeltaConfigMaker.integration", () => {
         const delta = await whenDeltaConfig.diff(snapshot)
 
         //then
-        assertThat(delta).is([])
+        assertThat(delta).is({
+          added: [],
+          removed: [],
+          changed: [],
+        })
       })
-
       it("and rows added", async () => {
         //given
         const before = await whenDeltaConfig.snapshot()
         console.log(JSON.stringify(before))
 
         //when
-        const expectedDelta = await createTwoRows(TABLE_NAME, dynamo)
+        const expectedDelta = await createTwoRows(dynamoTableFixture)
 
         //then
         const delta = await whenDeltaConfig.diff(before)
 
         console.log(JSON.stringify(delta))
 
-        assertThat(delta).is(match.array.unordered(expectedDelta))
+        assertThat(delta).is({
+          added: match.array.unordered(expectedDelta),
+          removed: [],
+          changed: [],
+        })
       })
     })
 
     describe("when rows before", () => {
       it("and none added", async () => {
         //given
-        await createTwoRows(TABLE_NAME, dynamo)
+        await createTwoRows(dynamoTableFixture)
         const snapshot = await whenDeltaConfig.snapshot()
 
         //when
         const delta = await whenDeltaConfig.diff(snapshot)
 
         //then
-        assertThat(delta).is(match.array.unordered([]))
+        assertThat(delta).is({
+          added: [],
+          removed: [],
+          changed: [],
+        })
       })
-
       it("and rows added", async () => {
         //given
-        await createTwoRows(TABLE_NAME, dynamo)
+        await createTwoRows(dynamoTableFixture)
         const snapshot = await whenDeltaConfig.snapshot()
-        const rowsAdded = await createTwoRows(TABLE_NAME, dynamo)
+        const rowsAdded = await createTwoRows(dynamoTableFixture)
 
         //when
         const delta = await whenDeltaConfig.diff(snapshot)
 
         //then
-        assertThat(delta).is(match.array.unordered(rowsAdded))
+        assertThat(delta).is({
+          added: match.array.unordered(rowsAdded),
+          removed: [],
+          changed: [],
+        })
+      })
+      it("and row removed", async () => {
+        //given
+        const existingRows = await createTwoRows(dynamoTableFixture)
+        const snapshot = await whenDeltaConfig.snapshot()
+        await dynamoTableFixture.delete({ PK: existingRows[0].PK, SK: existingRows[0].SK })
+
+        //when
+        const delta = await whenDeltaConfig.diff(snapshot)
+
+        //then
+        assertThat(delta).is({
+          added: [],
+          removed: [existingRows[0]],
+          changed: [],
+        })
+      })
+      it("and row changed", async () => {
+        //given
+        const existingRows = await createTwoRows(dynamoTableFixture)
+        const snapshot = await whenDeltaConfig.snapshot()
+        const updatedRow = { ...existingRows[0], col1: someFixture.someUniqueString("updatedValue") }
+        await dynamoTableFixture.upsert(updatedRow)
+
+        //when
+        const delta = await whenDeltaConfig.diff(snapshot)
+
+        //then
+        assertThat(delta).is({
+          added: [],
+          removed: [],
+          changed: [updatedRow],
+        })
       })
     })
   })
 })
 
-type DynamoColumns = { col1: string; col2: string }
+type DynamoRowKey = { PK: string; SK: number }
+type DynamoRow = DynamoRowKey & { col1: string; col2: string }
 
-const createTwoRows = async (table_name: string, dynamo: DynamoDBDocumentClient) => {
-  const expectedDynamoRows: DynamoRow<DynamoColumns>[] = [
-    {
-      PK: someFixture.someUniqueString("PK"),
-      SK: 0,
-      col1: someFixture.someUniqueString("col1"),
-      col2: someFixture.someUniqueString("col2"),
-    },
-    {
-      PK: someFixture.someUniqueString("PK"),
-      SK: 0,
-      col1: someFixture.someUniqueString("col1"),
-      col2: someFixture.someUniqueString("col2"),
-    },
-  ]
-  await dynamo.send(
-    new PutCommand({
-      TableName: table_name,
-      Item: expectedDynamoRows[0],
-    }),
-  )
-  await dynamo.send(
-    new PutCommand({
-      TableName: table_name,
-      Item: expectedDynamoRows[1],
-    }),
-  )
-  return expectedDynamoRows
+const createTwoRows = async (dyamoClient: ReturnType<typeof dynamoTableFixtureMaker>) => {
+  const createdRows = [dynamoRowFixture(), dynamoRowFixture()]
+  return Promise.allSettled(createdRows.map((row) => dyamoClient.upsert(row))).then(() => createdRows)
 }

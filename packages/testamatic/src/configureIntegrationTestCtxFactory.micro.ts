@@ -9,7 +9,7 @@ import {
   EnvSetup,
   Given,
   IntegrationTestCtxProvider,
-  WhenDeltaConfig,
+  WhenDeltaCalculator,
 } from "./configureIntegrationTestCtxFactory"
 import { MockHttpServerExpectation } from "./mockHttpServer/MockHttpExpectation"
 import { someFixture } from "@chrysalis-it/some-fixture"
@@ -78,7 +78,7 @@ describe("IntegrationTestCtx.micro", () => {
           defaultEnv,
           envSetup: envSetupMock.object,
         },
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
+        someFixture.someObjectOfType<WhenDeltaCalculator<SomeSnapshot, SomeWhenDelta>>(),
         httpMockkServerMocks.map((x) => x.object),
       )
     })
@@ -93,7 +93,7 @@ describe("IntegrationTestCtx.micro", () => {
           defaultEnv,
           envSetup: envSetupMock.object,
         },
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
+        someFixture.someObjectOfType<WhenDeltaCalculator<SomeSnapshot, SomeWhenDelta>>(),
       )
 
       envSetupMock.setup((x) => x.teardown())
@@ -140,7 +140,7 @@ describe("IntegrationTestCtx.micro", () => {
           defaultEnv,
           envSetup: envSetupMock.object,
         },
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
+        someFixture.someObjectOfType<WhenDeltaCalculator<SomeSnapshot, SomeWhenDelta>>(),
         httpMockkServerMocks.map((x) => x.object),
       )
 
@@ -194,7 +194,7 @@ describe("IntegrationTestCtx.micro", () => {
             defaultEnv,
             envSetup: envSetupMock.object,
           },
-          someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
+          someFixture.someObjectOfType<WhenDeltaCalculator<SomeSnapshot, SomeWhenDelta>>(),
           httpMockkServerMocks.map((x) => x.object),
           [],
           givenMocks.map((x) => x.object),
@@ -218,7 +218,7 @@ describe("IntegrationTestCtx.micro", () => {
             defaultEnv,
             envSetup: envSetupMock.object,
           },
-          someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
+          someFixture.someObjectOfType<WhenDeltaCalculator<SomeSnapshot, SomeWhenDelta>>(),
         )
 
         // when
@@ -258,7 +258,7 @@ describe("IntegrationTestCtx.micro", () => {
             defaultEnv,
             envSetup: envSetupMock.object,
           },
-          someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
+          someFixture.someObjectOfType<WhenDeltaCalculator<SomeSnapshot, SomeWhenDelta>>(),
           httpMockkServerMocks.map((x) => x.object),
           [],
           givenMocks.map((x) => x.object),
@@ -282,7 +282,7 @@ describe("IntegrationTestCtx.micro", () => {
             defaultEnv,
             envSetup: envSetupMock.object,
           },
-          someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
+          someFixture.someObjectOfType<WhenDeltaCalculator<SomeSnapshot, SomeWhenDelta>>(),
         )
 
         // when
@@ -322,7 +322,7 @@ describe("IntegrationTestCtx.micro", () => {
           defaultEnv,
           envSetup: envSetupMock.object,
         },
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
+        someFixture.someObjectOfType<WhenDeltaCalculator<SomeSnapshot, SomeWhenDelta>>(),
         [httpMockkServerMocks[0].object],
         [],
         [],
@@ -352,7 +352,7 @@ describe("IntegrationTestCtx.micro", () => {
           defaultEnv,
           envSetup: envSetupMock.object,
         },
-        someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
+        someFixture.someObjectOfType<WhenDeltaCalculator<SomeSnapshot, SomeWhenDelta>>(),
       )
 
       // when
@@ -405,7 +405,7 @@ describe("IntegrationTestCtx.micro", () => {
             defaultEnv,
             envSetup: envSetupMock.object,
           },
-          someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
+          someFixture.someObjectOfType<WhenDeltaCalculator<SomeSnapshot, SomeWhenDelta>>(),
           httpMockkServerMocks.map((x) => x.object),
           givenMocks.map((x) => x.object),
           [],
@@ -429,7 +429,7 @@ describe("IntegrationTestCtx.micro", () => {
             defaultEnv,
             envSetup: envSetupMock.object,
           },
-          someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
+          someFixture.someObjectOfType<WhenDeltaCalculator<SomeSnapshot, SomeWhenDelta>>(),
         )
 
         // when
@@ -470,7 +470,7 @@ describe("IntegrationTestCtx.micro", () => {
             defaultEnv,
             envSetup: envSetupMock.object,
           },
-          someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
+          someFixture.someObjectOfType<WhenDeltaCalculator<SomeSnapshot, SomeWhenDelta>>(),
           httpMockkServerMocks.map((x) => x.object),
           givenMocks.map((x) => x.object),
           givenMocks.map((x) => x.object),
@@ -495,7 +495,7 @@ describe("IntegrationTestCtx.micro", () => {
             defaultEnv,
             envSetup: envSetupMock.object,
           },
-          someFixture.someObjectOfType<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>>(),
+          someFixture.someObjectOfType<WhenDeltaCalculator<SomeSnapshot, SomeWhenDelta>>(),
         )
 
         // when
@@ -507,7 +507,7 @@ describe("IntegrationTestCtx.micro", () => {
 
   describe("when", () => {
     it("with no error", async () => {
-      const whenDeltaConfigMock: TMocked<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>> =
+      const whenDeltaConfigMock: TMocked<WhenDeltaCalculator<SomeSnapshot, SomeWhenDelta>> =
         mocks.mock("whenDeltaConfigMock")
       const firstSnapshot = someFixture.someObjectOfType<SomeSnapshot>()
       const expectedDelta = someFixture.someObjectOfType<SomeWhenDelta>()
@@ -565,7 +565,7 @@ describe("IntegrationTestCtx.micro", () => {
       })
     })
     it("with error", async () => {
-      const whenDeltaConfigMock: TMocked<WhenDeltaConfig<SomeSnapshot, SomeWhenDelta>> =
+      const whenDeltaConfigMock: TMocked<WhenDeltaCalculator<SomeSnapshot, SomeWhenDelta>> =
         mocks.mock("whenDeltaConfigMock")
       const firstSnapshot = someFixture.someObjectOfType<SomeSnapshot>()
 

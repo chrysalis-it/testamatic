@@ -25,7 +25,7 @@ export type EnvConfig<ENVKEYS extends string> = {
   envSetup: EnvSetup<ENVKEYS>
 }
 
-export type WhenDeltaConfig<SNAPSHOT extends object, DELTA extends object> = {
+export type WhenDeltaCalculator<SNAPSHOT extends object, DELTA extends object> = {
   snapshot: () => Promise<SNAPSHOT>
   diff: (first?: SNAPSHOT) => Promise<DELTA>
 }
@@ -47,7 +47,7 @@ export const configureIntegrationTestCtxProvider = <
   clientAndServerProvider: ClientAndServerProvider<ENVKEYS, APICLIENT>,
   logger: TestamaticLogger,
   envConfig: EnvConfig<ENVKEYS> = nullEnvConfig,
-  whenDeltaConfig?: WhenDeltaConfig<SNAPSHOT, DELTA>,
+  whenDeltaConfig?: WhenDeltaCalculator<SNAPSHOT, DELTA>,
   mockHttpServers: MockHttpServer<MOCKSERVERNAMES, ENVKEYS>[] = [],
   beforeAll: Given[] = [],
   beforeEach: Given[] = [],

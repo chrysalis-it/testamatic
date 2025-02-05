@@ -14,12 +14,12 @@ import { HttpConfig } from "@chrysalis-it/testamatic"
 
 import { PutCommand } from "@aws-sdk/lib-dynamodb"
 
-import { dynamoEventStoreDeltaConfigMaker, DynamoTableSetup } from "@chrysalis-it/testamatic-dynamo"
-import { simpleTableDefinitionMaker } from "@chrysalis-it/testamatic-dynamo"
-import { TableDiff } from "@chrysalis-it/testamatic-dynamo"
 import { local } from "./local"
 import http from "http"
-import {dynamoTableDeltaConfigMaker} from "@chrysalis-it/testamatic-dynamo";
+import { TableDiff } from "@chrysalis-it/testamatic-dynamo"
+import { dynamoTableDeltaCalculatorMaker } from "@chrysalis-it/testamatic-dynamo"
+import { DynamoTableSetup } from "@chrysalis-it/testamatic-dynamo"
+import { simpleTableDefinitionMaker } from "@chrysalis-it/testamatic-dynamo"
 
 type SomeEnvKeys = "EnvKeyOne" | "EnvKeyTwo"
 
@@ -74,7 +74,7 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
           },
           envSetup: new LocalEnvSetup(consoleLogger),
         },
-        dynamoTableDeltaConfigMaker<DynamoColumns>(local.awsClients.dynamo, dynamoTestTableName),
+        dynamoTableDeltaCalculatorMaker<DynamoColumns>(local.awsClients.dynamo, dynamoTestTableName),
         [],
         [new DynamoTableSetup(local.awsClients.dynamo, simpleTableDefinitionMaker(dynamoTestTableName))],
       )

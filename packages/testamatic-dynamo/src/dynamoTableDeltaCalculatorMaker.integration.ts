@@ -6,7 +6,7 @@ import { PutCommand } from "@aws-sdk/lib-dynamodb"
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb"
 import { someFixture } from "@chrysalis-it/some-fixture"
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
-import { dynamoTableDeltaConfigMaker } from "./dynamoTableDeltaConfigMaker"
+import { dynamoTableDeltaCalculatorMaker } from "./dynamoTableDeltaCalculatorMaker"
 import { dynamoTableFixtureMaker } from "./dynamo.fixture"
 import { dynamoRowFixture } from "./dynamo.fixture"
 
@@ -24,7 +24,7 @@ describe("dynamoTableDeltaConfigMaker.integration", () => {
   const dynamoTableSetup = new DynamoTableSetup(dynamo, simpleTableDefinitionMaker(TABLE_NAME))
 
   const dynamoTableFixture = dynamoTableFixtureMaker<DynamoRow>(dynamo, TABLE_NAME)
-  const whenDeltaConfig = dynamoTableDeltaConfigMaker<DynamoRow>(dynamo, TABLE_NAME)
+  const whenDeltaConfig = dynamoTableDeltaCalculatorMaker<DynamoRow>(dynamo, TABLE_NAME)
 
   beforeAll(async () => await dynamoTableSetup.setup())
   afterAll(async () => await dynamoTableSetup.teardown())

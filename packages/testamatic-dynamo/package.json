@@ -1,6 +1,6 @@
 {
   "name": "@chrysalis-it/testamatic-dynamo",
-  "version": "2.0.1",
+  "version": "3.0.0",
   "license": "Apache 2.0",
   "description": "Dynamo config for Testamatic",
   "publishConfig": {

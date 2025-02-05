@@ -1,4 +1,4 @@
-import { WhenDeltaConfig } from "@chrysalis-it/testamatic"
+import { WhenDeltaCalculator } from "@chrysalis-it/testamatic"
 import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb"
 
 export type TableDiff<ROW extends object> = {
@@ -7,12 +7,12 @@ export type TableDiff<ROW extends object> = {
   changed: ROW[]
 }
 
-export const dynamoTableDeltaConfigMaker = <ROW extends object>(
+export const dynamoTableDeltaCalculatorMaker = <ROW extends object>(
   dynamoClient: DynamoDBDocumentClient,
   tableName: string,
   partitionKeyName = "PK",
   sortKeyName = "SK",
-): WhenDeltaConfig<ROW[], TableDiff<ROW>> => {
+): WhenDeltaCalculator<ROW[], TableDiff<ROW>> => {
   const scan = scanMaker<ROW>(dynamoClient, tableName)
 
   return {

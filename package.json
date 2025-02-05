@@ -1,6 +1,6 @@
 {
   "name": "testamatic",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Configurable, light weight Integration test automation",
   "repository": {
     "type": "git",

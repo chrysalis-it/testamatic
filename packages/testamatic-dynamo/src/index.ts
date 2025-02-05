@@ -1,3 +1,4 @@
 export * from "./DynamoTableSetup"
-export * from "./dynamoEventStoreDeltaConfigMaker"
-export * from "./dynamoTableDeltaConfigMaker"
+export * from "./dynamoEventStoreDeltaCalculatorMaker"
+export * from "./dynamoTableDeltaCalculatorMaker"
+export * from "./dynamoMultiTableDeltaCalculatorMaker"

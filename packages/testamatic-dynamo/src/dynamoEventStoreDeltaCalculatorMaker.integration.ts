@@ -2,7 +2,7 @@ import { assertThat } from "mismatched"
 import { match } from "mismatched"
 import { DynamoTableSetup } from "./DynamoTableSetup"
 import { simpleTableDefinitionMaker } from "./DynamoTableSetup"
-import { dynamoEventStoreDeltaConfigMaker } from "./dynamoEventStoreDeltaConfigMaker"
+import { dynamoEventStoreDeltaCalculatorMaker } from "./dynamoEventStoreDeltaCalculatorMaker"
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb"
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb"
 import { dynamoRowFixture } from "./dynamo.fixture"
@@ -20,7 +20,7 @@ describe("dynamoEventStoreDeltaConfigMaker.integration", () => {
   const dynamo = DynamoDBDocumentClient.from(new DynamoDBClient(localStackConfig))
   const TABLE_NAME = "testTableName"
   const dynamoTableSetup = new DynamoTableSetup(dynamo, simpleTableDefinitionMaker(TABLE_NAME))
-  const whenDeltaConfig = dynamoEventStoreDeltaConfigMaker(dynamo, TABLE_NAME)
+  const whenDeltaConfig = dynamoEventStoreDeltaCalculatorMaker(dynamo, TABLE_NAME)
   const dyamoFixture = dynamoTableFixtureMaker(dynamo, TABLE_NAME)
 
   beforeAll(async () => await dynamoTableSetup.setup())
@@ -29,7 +29,7 @@ describe("dynamoEventStoreDeltaConfigMaker.integration", () => {
   describe("snapshot", () => {
     it("when no rows", async () => {
       //given
-      const whenDeltaConfig = dynamoEventStoreDeltaConfigMaker(dynamo, TABLE_NAME)
+      const whenDeltaConfig = dynamoEventStoreDeltaCalculatorMaker(dynamo, TABLE_NAME)
 
       //when
       const snapshot = await whenDeltaConfig.snapshot()
@@ -39,7 +39,7 @@ describe("dynamoEventStoreDeltaConfigMaker.integration", () => {
     })
     it("when rows exist", async () => {
       //given
-      const whenDeltaConfig = dynamoEventStoreDeltaConfigMaker(dynamo, TABLE_NAME)
+      const whenDeltaConfig = dynamoEventStoreDeltaCalculatorMaker(dynamo, TABLE_NAME)
       const expectedDynamoRows = await createTwoRows(dyamoFixture)
 
       //when

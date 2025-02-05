@@ -1,4 +1,4 @@
-import { WhenDeltaConfig } from "@chrysalis-it/testamatic"
+import { WhenDeltaCalculator } from "@chrysalis-it/testamatic"
 import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb"
 
 export type DynamoID = {
@@ -6,12 +6,12 @@ export type DynamoID = {
   SK: number
 }
 
-export const dynamoEventStoreDeltaConfigMaker = <COLUMNS extends object>(
+export const dynamoEventStoreDeltaCalculatorMaker = <COLUMNS extends object>(
   dynamoClient: DynamoDBDocumentClient,
   tableName: string,
   partitionKeyName = "PK",
   sortKeyName = "SK",
-): WhenDeltaConfig<COLUMNS[], COLUMNS[]> => {
+): WhenDeltaCalculator<COLUMNS[], COLUMNS[]> => {
   const scan = scanMaker<COLUMNS>(dynamoClient, tableName)
 
   return {
@@ -19,7 +19,12 @@ export const dynamoEventStoreDeltaConfigMaker = <COLUMNS extends object>(
     diff: async (before: COLUMNS[] = []): Promise<COLUMNS[]> => {
       const after = await scan()
       return after.filter(
-        (afterItem) => !before.some((beforeItem) => beforeItem[partitionKeyName] + beforeItem[sortKeyName] === afterItem[partitionKeyName] + afterItem[sortKeyName]),
+        (afterItem) =>
+          !before.some(
+            (beforeItem) =>
+              beforeItem[partitionKeyName] + beforeItem[sortKeyName] ===
+              afterItem[partitionKeyName] + afterItem[sortKeyName],
+          ),
       )
     },
   }

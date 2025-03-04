@@ -28,14 +28,15 @@ jobs:
           git config user.email "getpaulj@gmail.com"
           git config user.name "getpaulj - ci pipeline"
 
-      - name: Lerna Version
-        run: npm run all:version
-
       - name: Setup NPM
         uses: actions/setup-node@v4
         with:
           node-version: 20
           scope: '@chrysalis-it'
+
+      - name: Lerna Version
+        if: ${{ github.ref_name == 'main' }}
+        run: npm run all:version
 
       - name: Show Changed
         if: ${{ github.ref_name == 'main' }}

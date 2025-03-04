@@ -1,6 +1,6 @@
 {
   "name": "@chrysalis-it/testamatic-dynamo",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "license": "Apache 2.0",
   "description": "Dynamo config for Testamatic",
   "publishConfig": {
@@ -18,7 +18,7 @@
   },
   "dependencies": {
     "@aws-sdk/lib-dynamodb": "^3.0.0",
-    "@chrysalis-it/testamatic": "^1.0.13"
+    "@chrysalis-it/testamatic": "^1.0.14"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.0.0"

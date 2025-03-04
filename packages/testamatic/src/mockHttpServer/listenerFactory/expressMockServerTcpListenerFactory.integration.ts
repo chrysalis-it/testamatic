@@ -1,6 +1,5 @@
 import { AxiosInstance } from "axios"
 import { assertThat, match } from "mismatched"
-import https from "node:https"
 import { createAxiosInstance } from "../../axios/axiosInstanceMaker"
 import { HttpConfig, HttpListener } from "../../http/http.types"
 import { consoleLogger } from "../../logger/console/consoleLogger"
@@ -258,29 +257,3 @@ describe("expressMockServerTcpListenerFactory.integration.ts", () => {
     })
   })
 })
-
-function httpsGet(url): Promise<any> {
-  return new Promise((resolve, reject) => {
-    https
-      .get(url, { minVersion: "TLSv1.1", rejectUnauthorized: false }, (res) => {
-        let data = ""
-
-        // Receive data in chunks
-        res.on("data", (chunk) => {
-          data += chunk
-        })
-
-        // On completion, resolve the Promise
-        res.on("end", () => {
-          try {
-            resolve(JSON.parse(data)) // Parse JSON response
-          } catch (error) {
-            reject(new Error("Invalid JSON response"))
-          }
-        })
-      })
-      .on("error", (err) => {
-        reject(err) // Reject Promise on error
-      })
-  })
-}

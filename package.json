@@ -22,6 +22,7 @@
     "packages/*"
   ],
   "scripts": {
+    "clean": "rm -rf ./packages/**/dist & rm -rf ./packages/**/node_modules & rm -rf ./packages/**/*.tsbuildinfo & rm -rf ./node_modules",
     "all:clean": "lerna exec 'npm run clean && rm -rf ./node_modules' && rm -rf ./node_modules/@chrysalis",
     "all:compile": "lerna run compile",
     "all:cleancompile": "npm run all:clean && npm i &&  npm run all:compile",

@@ -134,3 +134,5 @@ bundle
 .idea
 .vscode
 
+*.key
+*.cert

@@ -61,7 +61,6 @@ jobs:
         run: |
           npm run docker:up
           npm run docker:localstack:wait
-          npm run test:certificate
           npm run docker -- exec -T dev npm run test:integration
           npm run docker:down
 

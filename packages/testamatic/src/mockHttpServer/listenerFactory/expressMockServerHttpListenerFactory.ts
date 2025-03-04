@@ -28,7 +28,7 @@ export const expressMockServerHttpListenerFactory: MockHttpListenerFactory = asy
         console.warn(
           "MockServers Running on HTTPS require a valid certificate configured for the servers host name",
           "Make sure you have certificates for your host.\n" +
-            "To generate run :\n" +
+            "To generate run server.key and server.crt:\n" +
             "\t openssl req -nodes -new -x509 -keyout server.key -out server.crt ",
         )
       }

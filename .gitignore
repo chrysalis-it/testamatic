@@ -135,4 +135,5 @@ bundle
 .vscode
 
 *.key
+*.crt
 *.cert

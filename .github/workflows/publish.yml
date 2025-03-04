@@ -34,6 +34,10 @@ jobs:
           node-version: 20
           scope: '@chrysalis-it'
 
+      - name: Install Dependencies
+        working-directory: .
+        run: npm ci
+
       - name: Lerna Version
         if: ${{ github.ref_name == 'main' }}
         run: npm run all:version
@@ -56,7 +60,6 @@ jobs:
         run: |
           set -e
           git status
-          npm i
           npm run all:compile
 
       - name: Setup Publish NPM

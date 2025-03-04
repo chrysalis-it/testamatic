@@ -12,7 +12,6 @@
     "test",
     "integration"
   ],
-
   "homepage": "https://github.com/chrysalis-it/testamatic/readme.md",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",

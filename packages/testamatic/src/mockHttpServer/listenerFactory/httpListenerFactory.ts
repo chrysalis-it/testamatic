@@ -14,7 +14,7 @@ export const httpListenerFactory = async (
 ): Promise<HttpListener> => {
   const server = await startServer(httpConfig)
   return new Promise<HttpListener>((resolve, reject) => {
-    const onUrl = httpConfigUrlMaker(httpConfig)
+    const onUrl = httpConfigUrlMaker(httpConfig, httpConfig.hostName)
     console.log(`🚀 ${name} is starting on ${onUrl}`)
     try {
       server.on("listening", () => {

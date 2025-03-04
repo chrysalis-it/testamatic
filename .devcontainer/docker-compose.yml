@@ -2,10 +2,10 @@ services:
 
   dev:
     user: "${CURRENT_UID:-node}"
-    image: "node:20.9.0"
+    image: "node:22.12.0"
     working_dir: /app
-    ports:
-      - 9090:9090
+    # ports:
+    #   - 9090:9090
     depends_on:
       - localstack
     volumes:

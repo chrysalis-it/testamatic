@@ -1,14 +1,14 @@
-import { mockHttpServerExpectationMatchesRequest, RequestMatchInfo } from "../MockHttpExpectation"
-import { isFunction } from "util"
-import { PrettyPrinter } from "mismatched"
-import { MockConfig, MockHttpListenerFactory } from "../MockHttpServer"
 import express, { Handler } from "express"
-import { httpListenerFactory } from "./httpListenerFactory"
-import http from "http"
-import { HttpConfig } from "../../http/http.types"
-import { HttpListener } from "../../http/http.types"
+import { PrettyPrinter } from "mismatched"
+import fs from "node:fs"
+import http from "node:http"
+import https from "node:https"
+import { isFunction } from "util"
+import { HttpConfig, HttpListener } from "../../http/http.types"
 import { TestamaticLogger } from "../../logger/TestamaticLogger"
-
+import { mockHttpServerExpectationMatchesRequest, RequestMatchInfo } from "../MockHttpExpectation"
+import { MockConfig, MockHttpListenerFactory } from "../MockHttpServer"
+import { httpListenerFactory } from "./httpListenerFactory"
 export const expressMockServerHttpListenerFactory: MockHttpListenerFactory = async (
   mockConfig: MockConfig,
   httpConfig: HttpConfig,
@@ -17,7 +17,41 @@ export const expressMockServerHttpListenerFactory: MockHttpListenerFactory = asy
   const serverStarter = () => {
     const expressApp = express()
     expressApp.use(expressHandlerMaker(mockConfig))
-    return Promise.resolve(http.createServer(expressApp).listen(httpConfig.port))
+
+    httpConfig.hostName = httpConfig?.hostName ?? "localhost"
+
+    // Run this command to generate local certs
+    // openssl req -nodes -new -x509 -keyout server.key -out server.crt
+    if (httpConfig.protocol === "https") {
+      // expressApp.use(HTTPS({ trustProtoHeader: true }))
+      if (!httpConfig.certificatePath) {
+        console.warn(
+          "MockServers Running on HTTPS require a valid certificate configured for the servers host name",
+          "Make sure you have certificates for your host.\n" +
+            "To generate run :\n" +
+            "\t openssl req -nodes -new -x509 -keyout server.key -out server.crt ",
+        )
+      }
+      const server = https
+        .createServer(
+          {
+            key: httpConfig.certificatePath ? fs.readFileSync(`${httpConfig.certificatePath}.key`) : undefined,
+            cert: httpConfig.certificatePath ? fs.readFileSync(`${httpConfig.certificatePath}.crt`) : undefined,
+          },
+          expressApp,
+        )
+        .listen(httpConfig.port, () => {
+          console.log(`HTTPS Server running on https://${httpConfig.hostName}:${httpConfig.port}`)
+        })
+      return Promise.resolve(server)
+    } else {
+      const server = http
+        .createServer(expressApp)
+        .listen(httpConfig.port, () =>
+          console.log(`HTTP Server running on http://${httpConfig.hostName}:${httpConfig.port}`),
+        )
+      return Promise.resolve(server)
+    }
   }
 
   // TODO PJ

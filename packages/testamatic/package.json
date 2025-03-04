@@ -1,6 +1,6 @@
 {
   "name": "@chrysalis-it/testamatic",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "license": "Apache 2.0",
   "description": "Configurable, light weight Integration test automation",
   "publishConfig": {
@@ -17,10 +17,10 @@
     "compile": "tsc -b ."
   },
   "devDependencies": {
-    "@aws-sdk/client-ssm": "^3.0.0",
     "@aws-sdk/client-dynamodb": "^3.0.0",
+    "@aws-sdk/client-ssm": "^3.0.0",
     "@aws-sdk/lib-dynamodb": "^3.0.0",
-    "@chrysalis-it/some-fixture": "^1.0.14",
+    "@chrysalis-it/some-fixture": "^1.0.15",
     "@types/express": "^4.0.0",
     "@types/koa": "^2.00.0",
     "@types/koa-bodyparser": "^4.0.0",

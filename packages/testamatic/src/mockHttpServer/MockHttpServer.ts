@@ -4,7 +4,7 @@ import {
   mockHttpServerExpectationMatchesRequest,
   RequestMatchInfo,
 } from "./MockHttpExpectation"
-import { HttpConfig, HttpListener } from "../http/http.types"
+import { HttpConfig, HttpListener, HttpMockConfig } from "../http/http.types"
 import { httpConfigUrlMaker } from "../http/httpConfigUrlMaker"
 import { TestamaticLogger } from "../logger/TestamaticLogger"
 
@@ -32,11 +32,11 @@ export class MockHttpServer<MOCKSERVERNAMES extends string = string, ENVKEYS ext
     public name: MOCKSERVERNAMES,
     private urlEnvKey: ENVKEYS,
     private listenerFactory: MockHttpListenerFactory,
-    private config: HttpConfig,
+    config: HttpMockConfig,
     private logger: TestamaticLogger,
   ) {
     this.httpConfig = {
-      protocol: config.protocol,
+      ...config,
       port: MockHttpServer.nextServerPort++,
     }
   }

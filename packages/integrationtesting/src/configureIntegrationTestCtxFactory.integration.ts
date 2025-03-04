@@ -1,23 +1,23 @@
-import { assertThat, match } from "mismatched"
-import express, { Router as ExRouter } from "express"
-import { RestClient } from "typed-rest-client"
-import * as process from "process"
-import axios from "axios"
-import * as util from "util"
 import {
   ClientAndServerProvider,
   configureIntegrationTestCtxProvider,
+  consoleLogger,
+  createAxiosInstance,
   EnvVars,
+  HttpConfig,
   koaMockServerTcpListenerFactory,
   LocalEnvSetup,
   MockHttpServer,
   restClientAndExpressServerProviderMaker,
   ServerStarter,
 } from "@chrysalis-it/testamatic"
-import { createAxiosInstance } from "@chrysalis-it/testamatic"
-import { consoleLogger } from "@chrysalis-it/testamatic"
-import { HttpConfig } from "@chrysalis-it/testamatic"
+import axios from "axios"
+import express, { Router as ExRouter } from "express"
 import http from "http"
+import { assertThat, match } from "mismatched"
+import * as process from "process"
+import { RestClient } from "typed-rest-client"
+import * as util from "util"
 
 type SomeEnvKeys = "EnvKeyOne" | "EnvKeyTwo"
 type SomeMockServerNames = "HttpMockServer1" | "HttpMockServer2" | "HttpMockServer3"
@@ -157,7 +157,6 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
               koaMockServerTcpListenerFactory,
               {
                 protocol: "http",
-                port: 9999,
               },
               consoleLogger,
             ),
@@ -222,7 +221,6 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
               koaMockServerTcpListenerFactory,
               {
                 protocol: "http",
-                port: 9999,
               },
               consoleLogger,
             ),
@@ -301,7 +299,6 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
               koaMockServerTcpListenerFactory,
               {
                 protocol: "http",
-                port: 9999,
               },
               consoleLogger,
             ),
@@ -367,7 +364,6 @@ describe("configureIntegrationTestCtxFactory.integration", () => {
               koaMockServerTcpListenerFactory,
               {
                 protocol: "http",
-                port: 9999,
               },
               consoleLogger,
             ),

@@ -40,7 +40,7 @@
     "docker:bounce": "npm run docker:down npm run docker:up docker:dev:connect",
     "docker:dev:connect": "npm run docker:up && npm run docker -- exec  dev bash",
     "docker:localstack:wait": "npm run docker -- exec -T dev bash -c \"source ./.devcontainer/wait-for-it.sh && docker_wait_for_service http://localstack:4566 40\"",
-    "test:certificate": "openssl req -nodes -new -x509 -newkey rsa:1024 -subj '/C=NZ/ST=Test/L=AKL/O=Dis/CN=localhost' -keyout server.key -out server.crt"
+    "test:certificate": "mkdir -p ~/cert && openssl req -nodes -new -x509 -newkey rsa:1024 -subj '/C=NZ/ST=Test/L=AKL/O=Dis/CN=localhost' -keyout ~/cert/server.key -out ~/cert/server.crt"
   },
   "devDependencies": {
     "@types/jest": "^29.0.0",

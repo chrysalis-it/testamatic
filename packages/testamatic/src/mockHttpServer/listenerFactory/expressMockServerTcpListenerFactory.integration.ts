@@ -154,7 +154,7 @@ describe("expressMockServerTcpListenerFactory.integration.ts", () => {
         port: 9901,
         protocol: "https",
         hostName: "localhost",
-        certificatePath: "/app/server",
+        certificatePath: "/home/node/cert/server",
       }
     })
     it("when no expectations", async () => {

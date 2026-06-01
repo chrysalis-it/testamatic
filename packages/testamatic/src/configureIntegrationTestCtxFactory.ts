@@ -65,7 +65,7 @@ export const configureIntegrationTestCtxProvider = <
       all: {
         before: async () => {
           logger.debug("ctx.beforeAll started")
-          await Promise.all([...mockHttpServers.map((x) => x.listen())])
+          await Promise.all(mockHttpServers.map((x) => x.listen()))
           await Promise.all(beforeAll.map((x) => x.teardown().then(() => x.setup())))
 
           logger.debug("ctx.beforeAll complete")
@@ -74,7 +74,7 @@ export const configureIntegrationTestCtxProvider = <
           logger.debug("ctx.afterAll started")
           await clientAndServer.close()
 
-          await Promise.all([mockHttpServers.map((x) => x.close())])
+          await Promise.all(mockHttpServers.map((x) => x.close()))
 
           logger.debug("ctx.afterAll complete")
         },

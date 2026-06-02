@@ -72,6 +72,21 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.PUBLISH_NPM_TOKEN }}
 
+      - name: Verify NPM Auth
+        if: ${{ github.ref_name == 'main' && success() && steps.show_changed.outputs.has_changes == 'Yes' }}
+        run: |
+          if ! WHOAMI=$(npm whoami --registry=https://registry.npmjs.org 2>&1); then
+            echo "::error title=NPM auth failed::Could not authenticate to npmjs.org. The PUBLISH_NPM_TOKEN secret is likely missing, expired, or lacks write access to the @chrysalis-it scope. npm reports auth failures as a generic 404 on publish, so fix the token before re-running. Detail: $WHOAMI"
+            exit 1
+          fi
+          echo "Authenticated to npmjs.org as: $WHOAMI"
+          if [ "$WHOAMI" != "getpaulj" ]; then
+            echo "::error title=Unexpected npm user::Token belongs to '$WHOAMI', but @chrysalis-it packages are owned by 'getpaulj'. Publish would 404. Use a token from the getpaulj account."
+            exit 1
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.PUBLISH_NPM_TOKEN }}
+
       - name: Publish
         if: ${{ github.ref_name == 'main' && success() && steps.show_changed.outputs.has_changes == 'Yes' }}
         run: |

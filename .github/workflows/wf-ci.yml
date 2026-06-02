@@ -11,12 +11,12 @@ jobs:
     steps:
 
       - name: Setup NPM
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 #      - name: lint
 #        run: npm run lint
       - name: build
@@ -31,9 +31,9 @@ jobs:
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Setup NPM
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20
       - name: build
@@ -50,9 +50,9 @@ jobs:
     needs: test-micro
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Setup NPM
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20
       - name: build

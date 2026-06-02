@@ -21,7 +21,7 @@ jobs:
       packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: Set up Git User
         run: |
@@ -29,7 +29,7 @@ jobs:
           git config user.name "getpaulj - ci pipeline"
 
       - name: Setup NPM
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20
           scope: '@chrysalis-it'
@@ -63,7 +63,7 @@ jobs:
           npm run all:compile
 
       - name: Setup Publish NPM
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: 'npm'

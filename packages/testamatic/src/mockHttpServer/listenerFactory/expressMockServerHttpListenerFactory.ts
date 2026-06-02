@@ -3,7 +3,6 @@ import { PrettyPrinter } from "mismatched"
 import fs from "node:fs"
 import http from "node:http"
 import https from "node:https"
-import { isFunction } from "util"
 import { HttpConfig, HttpListener } from "../../http/http.types"
 import { TestamaticLogger } from "../../logger/TestamaticLogger"
 import { mockHttpServerExpectationMatchesRequest, RequestMatchInfo } from "../MockHttpExpectation"
@@ -16,6 +15,7 @@ export const expressMockServerHttpListenerFactory: MockHttpListenerFactory = asy
 ): Promise<HttpListener> => {
   const serverStarter = () => {
     const expressApp = express()
+    expressApp.use(express.json())
     expressApp.use(expressHandlerMaker(mockConfig))
 
     httpConfig.hostName = httpConfig?.hostName ?? "localhost"
@@ -108,7 +108,7 @@ const expressHandlerMaker =
     response.statusMessage = applicableExpectation.response.statusText
     response.header["content-type"] = "application/json"
 
-    const body = isFunction(applicableExpectation.response.body)
+    const body = typeof applicableExpectation.response.body === "function"
       ? (applicableExpectation.response.body as (req: unknown) => unknown)(reqInfo)
       : applicableExpectation.response.body
 

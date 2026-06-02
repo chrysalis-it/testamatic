@@ -135,6 +135,92 @@ describe("expressMockServerTcpListenerFactory.integration.ts", () => {
       // assert failures
       assertThat(failures).is([])
     })
+    it("when POST body matches the expectation", async () => {
+      const failures: MockHttpServerFailure[] = []
+
+      const tcpConfig: HttpConfig = {
+        protocol: "http",
+        port: 9903,
+      }
+
+      const expectedPath = "some/path/that/does/match"
+      const postBody = { name: "Bob", roles: ["admin", "user"] }
+      const nextExpectation: MockHttpServerExpectation = {
+        requestMatcher: {
+          method: "post",
+          url: "/" + expectedPath,
+          body: postBody,
+        },
+        response: {
+          body: { hello: "I am a mock http server" },
+          status: 200,
+          statusText: "All good",
+        },
+      }
+
+      const mockConfig: MockConfig = {
+        mockServerName: "Test",
+        registerFailure: (failure: MockHttpServerFailure) => failures.push(failure),
+        getApplicableExpectation: () => nextExpectation,
+      }
+      listener = await expressMockServerHttpListenerFactory(mockConfig, tcpConfig, consoleLogger)
+
+      const response = await axiosClient.post(`${listener.onUrl}/${expectedPath}`, postBody)
+
+      // assert response
+      assertThat(response.status).is(nextExpectation.response.status)
+      assertThat(response.statusText).is("All good")
+      assertThat(response.data).is(nextExpectation.response.body)
+
+      // assert failures
+      assertThat(failures).is([])
+    })
+    it("when POST body does NOT match the expectation", async () => {
+      const failures: MockHttpServerFailure[] = []
+
+      const tcpConfig: HttpConfig = {
+        protocol: "http",
+        port: 9904,
+      }
+
+      const expectedPath = "some/path/that/does/match"
+      const nextExpectation: MockHttpServerExpectation = {
+        requestMatcher: {
+          method: "post",
+          url: "/" + expectedPath,
+          body: { name: "Bob", roles: ["admin", "user"] },
+        },
+        response: {
+          body: { hello: "I am a mock http server" },
+          status: 200,
+          statusText: "All good",
+        },
+      }
+
+      const mockConfig: MockConfig = {
+        mockServerName: "Test",
+        registerFailure: (failure: MockHttpServerFailure) => failures.push(failure),
+        getApplicableExpectation: () => nextExpectation,
+      }
+      listener = await expressMockServerHttpListenerFactory(mockConfig, tcpConfig, consoleLogger)
+
+      const response = await axiosClient.post(`${listener.onUrl}/${expectedPath}`, {
+        name: "Alice",
+        roles: ["user"],
+      })
+
+      // assert response
+      assertThat(response.status).is(400)
+      assertThat(response.statusText).is("Expectation did not match")
+
+      // assert failures
+      assertThat(failures).is([
+        {
+          reason: "Expectation did not match",
+          diff: match.any(),
+        },
+      ])
+    })
   })
 
   describe("https", () => {

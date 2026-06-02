@@ -2,7 +2,6 @@ import Koa from "koa"
 import bodyParser from "koa-bodyparser"
 import sslify from "koa-sslify"
 import { mockHttpServerExpectationMatchesRequest, RequestMatchInfo } from "../MockHttpExpectation"
-import { isFunction } from "util"
 import { PrettyPrinter } from "mismatched"
 import { MockConfig, MockHttpListenerFactory } from "../MockHttpServer"
 import { httpListenerFactory, ServerStarter } from "./httpListenerFactory"
@@ -61,7 +60,7 @@ const reqHandlerMaker = (mockConfig: MockConfig) => async (koaCtx: Koa.Context) 
     `${mockConfig.mockServerName} Mock Server request matched expectation`,
     PrettyPrinter.make().render(applicableExpectation.requestMatcher),
   )
-  koaCtx.body = isFunction(applicableExpectation.response.body)
+  koaCtx.body = typeof applicableExpectation.response.body === "function"
     ? (applicableExpectation.response.body as (req: unknown) => unknown)(reqInfo)
     : applicableExpectation.response.body
 
